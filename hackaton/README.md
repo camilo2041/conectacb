@@ -60,6 +60,9 @@ python run.py
 
 Docs interactivas (Swagger): http://localhost:8000/docs
 
+Guía para integrar la planeación de viajes de A a B (web, WhatsApp, apps):
+[docs/planear-viajes.md](docs/planear-viajes.md).
+
 ## Endpoints
 
 ### Sistema
