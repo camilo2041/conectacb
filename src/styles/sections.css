@@ -1899,6 +1899,29 @@
   opacity: 1;
 }
 
+.footer__wa {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 16px;
+  border-radius: 100px;
+  border: 1px solid var(--night-line);
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 700;
+  font-size: 0.92rem;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.2s ease, border-color 0.2s ease;
+}
+
+.footer__wa svg {
+  color: #25d366;
+}
+
+.footer__wa:hover {
+  background: rgba(37, 211, 102, 0.12);
+  border-color: rgba(37, 211, 102, 0.5);
+}
+
 .footer__copy {
   font-size: 0.84rem;
   color: rgba(255, 255, 255, 0.5);

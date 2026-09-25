@@ -1,4 +1,6 @@
 import badge from '../assets/badge.png';
+import Icon from './Icon';
+import { WHATSAPP_DISPLAY, WHATSAPP_URL } from '../config';
 
 export default function Footer() {
   return (
@@ -17,6 +19,9 @@ export default function Footer() {
           <a href="#como-funciona">Cómo funciona</a>
           <a href="#app">App</a>
         </nav>
+        <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="footer__wa">
+          <Icon name="chat" size={18} /> {WHATSAPP_DISPLAY}
+        </a>
         <span className="footer__copy">© {new Date().getFullYear()} ConectaCB · Movilidad integrada con IA</span>
       </div>
     </footer>
