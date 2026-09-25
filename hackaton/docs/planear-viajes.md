@@ -186,7 +186,7 @@ curl -X POST https://conectacb.autonomiaydesarrollo.com/api/asistente \
 | --- | --- | --- |
 | `texto` | string | La pregunta. **Debe incluir el origen con "de" o "desde"**: `"de Quiba a Portal Tunal"`. Sin eso solo encuentra el destino. |
 | `origen` / `destino` | `{lat, lon}` | Opcional: si el usuario compartió su ubicación, envíala aquí y el texto solo necesita el destino (`"a Portal Tunal"`). |
-| `usar_directo` | bool | Por defecto `true`. Envía `false` para transporte público e informal. |
+| `usar_directo` | bool | Por defecto `false`: responde con transporte público e informal. Con `true` puede recomendar ir en carro. |
 | `hora` / `dia` | string | Igual que en `/ruta`. |
 
 Si no entiende el origen o el destino, responde **200** con `"ruta": null` y la explicación en `respuesta`:
@@ -227,7 +227,7 @@ curl "https://conectacb.autonomiaydesarrollo.com/api/geocodificar?q=tunal&limite
 ]}
 ```
 
-Busca primero en los 19 lugares conocidos de la localidad (barrios, veredas y estaciones). Si no encuentra, busca en OpenStreetMap, lo que sirve para direcciones y sitios de toda Bogotá (`q=Estadio El Campin`). Usa `externo=false` para buscar solo en los lugares conocidos, más rápido y sin salir a internet.
+Busca primero en los 19 lugares conocidos de la localidad (barrios, veredas y estaciones); tolera errores de tipeo (`Cazuka`), pero no confunde barrios con nombres parecidos. Si no encuentra, busca en OpenStreetMap **primero dentro de Ciudad Bolívar** y, solo si ahí no hay nada con ese nombre, en el resto de Bogotá (`q=Estadio El Campin`). Así, "Jerusalén", "La Estrella" o "San Joaquín" dan el barrio de la localidad y no uno homónimo del norte o de Bosa. De OpenStreetMap se descartan comercios (tiendas, restaurantes, hoteles) y resultados cuyo nombre no contiene lo buscado. Usa `externo=false` para buscar solo en los lugares conocidos, más rápido y sin salir a internet.
 
 ## Priorizar precio o transbordos
 
@@ -262,6 +262,6 @@ Con ese ejemplo, cada $1.000 de tarifa pesa como 500 s de viaje y cada transbord
 - **`hora` no se valida.** Un valor como `"25:99"` no da error; valida el formato `HH:MM` antes de enviarlo.
 - **Nombres sin tildes.** Los lugares y líneas vienen sin tildes ("Mirador del Paraiso", "Cazuca").
 - **Formato de la tarifa en `respuesta`.** El texto del asistente usa coma de miles (`$7,700`); para mostrar precios usa `tarifa_total_cop` y dale formato colombiano (`$7.700`).
-- **Datos de ejemplo.** El trazado del TransMiCable, sus 4 estaciones y sus 23 pilonas son reales. La troncal `TMC-02`, las rutas `INF-001` a `INF-005` (Suba, Usme, Kennedy, Bosa, Calle 80) y las alertas son de prueba. Las rutas `CB-*` tienen extremos reales pero trazados de 3 a 5 puntos (líneas rectas de hasta 2,3 km).
+- **Datos de ejemplo.** El trazado del TransMiCable, sus 4 estaciones y sus 23 pilonas son reales. La troncal `TMC-02`, las rutas `INF-001` a `INF-005` (Suba, Usme, Kennedy, Bosa, Calle 80, en `data/rutas_informales.geojson`) y las alertas son de prueba. Las `INF-*` no pasan por Ciudad Bolívar: ningún viaje dentro de la localidad las usa y la web no las muestra, pero siguen saliendo en `/lineas`, `/capas` y en el conteo de `/health`. Las rutas `CB-*` tienen extremos reales pero trazados de 3 a 5 puntos (líneas rectas de hasta 2,3 km).
 - **SITP.** La API no tiene rutas del SITP: solo las 9 zonas tarifarias (`GET /zonas`). Los tramos `formal` hoy solo pueden ser TransMiCable o la troncal de TransMilenio.
 - **Novedades lejos de sus líneas.** Una alerta afecta las líneas que declara en `lineas_afectadas` y además las que pasan a menos de 150 m de su punto. El campo `lineas_afectadas_efectivas` de `GET /alertas` trae la lista completa que usa el ruteo. En los datos actuales, el derrumbe `AL-001` está a 2,1 km de las líneas que afecta y la obra `AL-002` a 860 m.

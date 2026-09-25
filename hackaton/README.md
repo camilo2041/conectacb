@@ -99,7 +99,9 @@ Guía para integrar la planeación de viajes de A a B (web, WhatsApp, apps):
 
 El gazetteer local (`data/lugares.json`) es rápido y sin red; si no encuentra,
 se usa **OpenStreetMap vía Photon** (sin API key) para barrios, direcciones o
-lugares. `/ruta`, `/ruta/mapa` y `/asistente` aceptan nombres directamente.
+lugares, buscando primero dentro de Ciudad Bolívar y luego en el resto de Bogotá.
+`/ruta`, `/ruta/mapa` y `/asistente` aceptan nombres directamente. `/asistente`
+responde por defecto con transporte público e informal (`usar_directo: false`).
 
 ### Alertas / novedades
 | Método | Ruta | Descripción |

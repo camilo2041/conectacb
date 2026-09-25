@@ -1,3 +1,5 @@
+import { inCB, toLatLng } from '../data/mapStyle';
+
 // En producción nginx reenvía /api al contenedor de la API; en desarrollo lo hace el proxy de Vite.
 const BASE = import.meta.env.VITE_API_URL || '/api';
 
@@ -40,5 +42,10 @@ export const api = {
   health: () => once('health', () => request('/health')),
   tarifas: () => once('tarifas', () => request('/tarifas')),
   // Catálogo id -> línea.
-  lineas: () => once('lineas', () => request('/lineas').then(r => new Map(r.lineas.map(l => [l.id, l]))))
+  lineas: () => once('lineas', () => request('/lineas').then(r => new Map(r.lineas.map(l => [l.id, l])))),
+  // Solo las líneas que pasan por Ciudad Bolívar: la API también trae rutas de prueba de otras
+  // localidades (Suba, Usme, Kennedy, Bosa, Calle 80) que no se muestran ni se cuentan.
+  lineasCB: () => api.lineas().then(m => new Map([...m].filter(([, l]) => passesThroughCB(l.geometria))))
 };
+
+export const passesThroughCB = geometria => (geometria?.coordinates ?? []).some(c => inCB(toLatLng(c)));

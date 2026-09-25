@@ -62,8 +62,10 @@ class Gazetteer:
             elif q in termino:
                 score = 0.8
             else:
+                # Solo errores de tipeo: con 0.6 barrios distintos se confundian
+                # ("Arabia" -> "Paraiso", "Villa Gloria" -> "Bella Flor").
                 score = SequenceMatcher(None, q, termino).ratio()
-                if score < 0.6:
+                if score < 0.8:
                     continue
             actual = puntajes.get(clave)
             if actual is None or score > actual[0]:

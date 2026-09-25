@@ -135,6 +135,124 @@ def test_geocodificar():
     assert "Quiba" in nombres
 
 
+@pytest.mark.parametrize("consulta", ["Arabia", "Villa Gloria", "San Isidro", "Naciones Unidas", "Portal Sur"])
+def test_gazetteer_no_confunde_barrios_parecidos(consulta):
+    # Antes, con similitud >= 0.6, "Arabia" daba "Mirador del Paraiso" y "Portal Sur" daba "Portal Tunal".
+    assert client.get("/geocodificar", params={"q": consulta, "externo": False}).json()["resultados"] == []
+
+
+@pytest.mark.parametrize("consulta, esperado", [("Cazuka", "Cazuca"), ("Arborisadora Alta", "Arborizadora Alta")])
+def test_gazetteer_tolera_errores_de_tipeo(consulta, esperado):
+    resultados = client.get("/geocodificar", params={"q": consulta, "externo": False}).json()["resultados"]
+    assert resultados[0]["nombre"] == esperado
+
+
+def _photon(*lugares):
+    return {
+        "features": [
+            {
+                "geometry": {"coordinates": [lon, lat]},
+                "properties": {"name": nombre, "osm_key": clave, "osm_value": tipo},
+            }
+            for nombre, (clave, tipo), lat, lon in lugares
+        ]
+    }
+
+
+@pytest.fixture
+def photon(monkeypatch):
+    """Photon simulado: responde segun el recuadro (bbox) que pide el geocoder."""
+    from app import geocoder_externo
+    from app.config import settings
+
+    monkeypatch.setattr(settings, "geocoder_externo", True)
+    monkeypatch.setattr(geocoder_externo, "_cache", {})
+    respuestas: dict[str, dict] = {}
+    pedidos: list[dict] = []
+
+    class _Resp:
+        def __init__(self, data):
+            self._data = data
+
+        def raise_for_status(self):
+            pass
+
+        def json(self):
+            return self._data
+
+    def fake_get(url, params, timeout, headers):
+        pedidos.append(params)
+        zona = "cb" if params["bbox"] == ",".join(str(v) for v in geocoder_externo._BBOX_CB) else "bogota"
+        return _Resp(respuestas.get(zona, {"features": []}))
+
+    monkeypatch.setattr(geocoder_externo.requests, "get", fake_get)
+    return respuestas, pedidos
+
+
+def test_geocoder_externo_prefiere_ciudad_bolivar(photon):
+    from app.geocoder_externo import buscar_externo
+
+    respuestas, pedidos = photon
+    respuestas["cb"] = _photon(
+        ("Convenio ISPA-SENA Jerusalen", ("amenity", "school"), 4.5720, -74.1636),
+        ("Jerusalén", ("place", "neighbourhood"), 4.5747, -74.1580),
+        ("Jerusalén", ("landuse", "religious"), 4.7160, -74.1232),  # fuera de Ciudad Bolivar aunque Photon lo mande
+    )
+    lugar = buscar_externo("Jerusalen", limite=1)[0]
+    assert (lugar.nombre, lugar.lat) == ("Jerusalén", 4.5747)  # el barrio, antes que el colegio
+    assert len(pedidos) == 1  # no hizo falta buscar en el resto de Bogota
+
+
+def test_geocoder_externo_descarta_nombres_distintos(photon):
+    from app.geocoder_externo import buscar_externo
+
+    respuestas, _ = photon
+    respuestas["cb"] = _photon(("Hiperdrogueria La Gran Cordiliena", ("amenity", "pharmacy"), 4.5500, -74.1500))
+    assert buscar_externo("La Cordillera") == []
+
+
+def test_geocoder_externo_descarta_comercios(photon):
+    from app.geocoder_externo import buscar_externo
+
+    respuestas, _ = photon
+    respuestas["bogota"] = _photon(("Hostal Villa Gloria", ("tourism", "hostel"), 4.5983, -74.0676))
+    assert buscar_externo("Villa Gloria") == []
+
+
+def test_geocoder_externo_busca_en_bogota_si_no_hay_en_ciudad_bolivar(photon):
+    from app.geocoder_externo import buscar_externo
+
+    respuestas, pedidos = photon
+    respuestas["bogota"] = _photon(("Kennedy", ("place", "suburb"), 4.6320, -74.1540))
+    assert buscar_externo("Kennedy", limite=1)[0].nombre == "Kennedy"
+    assert len(pedidos) == 2
+
+
+def test_geocoder_externo_reintenta_si_photon_falla(photon, monkeypatch):
+    from app import geocoder_externo
+
+    respuestas, pedidos = photon
+    respuestas["cb"] = _photon(("Meissen", ("place", "neighbourhood"), 4.5597, -74.1364))
+    get_ok = geocoder_externo.requests.get
+    fallos = iter([True])
+
+    def get_con_un_fallo(*args, **kwargs):
+        if next(fallos, False):
+            raise geocoder_externo.requests.Timeout()
+        return get_ok(*args, **kwargs)
+
+    monkeypatch.setattr(geocoder_externo.requests, "get", get_con_un_fallo)
+    monkeypatch.setattr(geocoder_externo.time, "sleep", lambda s: None)
+    assert geocoder_externo.buscar_externo("Meissen", limite=1)[0].nombre == "Meissen"
+
+
+def test_asistente_por_defecto_usa_transporte_publico():
+    data = client.post("/asistente", json={"texto": "de Cazuca a Juan Pablo II", "hora": "12:00"}).json()
+    modos = {t["modo"] for t in data["ruta"]["tramos"]}
+    assert "directo" not in modos
+    assert "cable" in modos
+
+
 def test_ruta_con_nombres_de_lugar():
     body = {
         "origen_texto": "Quiba",

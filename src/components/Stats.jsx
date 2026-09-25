@@ -3,10 +3,10 @@ import { api } from '../lib/api';
 import { useApi } from '../lib/useApi';
 
 export default function Stats() {
-  const { data } = useApi(() => Promise.all([api.health(), api.lineas(), api.alertas()]));
+  const { data } = useApi(() => Promise.all([api.health(), api.lineasCB(), api.alertas()]));
 
   let stats = [
-    { label: 'rutas integradas en el planeador' },
+    { label: 'rutas por Ciudad Bolívar en el planeador' },
     { label: 'estaciones de TransMiCable' },
     { label: 'barrios, veredas y estaciones que el asistente reconoce' },
     { label: 'novedades activas reportadas' }
@@ -14,7 +14,7 @@ export default function Stats() {
   if (data) {
     const [health, lineas, alertas] = data;
     const estaciones = [...lineas.values()].filter(l => l.tipo === 'cable').reduce((s, l) => s + l.num_paradas, 0);
-    const valores = [health.rutas_formales + health.rutas_informales, estaciones, health.lugares, alertas.length];
+    const valores = [lineas.size, estaciones, health.lugares, alertas.length];
     stats = stats.map((s, i) => ({ ...s, value: valores[i] }));
   }
 

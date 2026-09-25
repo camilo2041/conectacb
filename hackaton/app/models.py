@@ -177,7 +177,10 @@ class AsistenteRequest(BaseModel):
     origen: Coordenada | None = None
     destino: Coordenada | None = None
     perfil: Perfil = "driving"
-    usar_directo: bool = True
+    usar_directo: bool = Field(
+        False,
+        description="Incluir la ruta en carro. Por defecto no: el asistente responde con transporte publico e informal.",
+    )
     hora: str | None = None
     dia: str | None = None
 

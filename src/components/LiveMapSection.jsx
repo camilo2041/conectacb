@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import SplitText from './reactbits/SplitText';
 import Icon from './Icon';
-import { api } from '../lib/api';
+import { api, passesThroughCB } from '../lib/api';
 import { routeStore } from '../lib/routeStore';
 import { accent, lineRoute } from '../lib/text';
 import { eventIconSvg } from '../data/eventIcons';
@@ -16,7 +16,7 @@ const ROUTE_COLORS = { cable: SYSTEMS.cable.color, formal: SYSTEMS.formal.color,
 
 function normalize(capas, lugares, alertas) {
   const lines = capas.features
-    .filter(f => f.properties.capa === 'linea' && f.geometry?.type === 'LineString')
+    .filter(f => f.properties.capa === 'linea' && f.geometry?.type === 'LineString' && passesThroughCB(f.geometry))
     .map(f => ({ ...f.properties, system: systemOf(f.properties.tipo), path: f.geometry.coordinates.map(toLatLng) }));
   const pylons = capas.features.filter(f => f.properties.capa === 'pilona').map(f => toLatLng(f.geometry.coordinates));
   const places = lugares.lugares.map(l => ({ ...l, pos: { lat: l.lat, lng: l.lon } }));

@@ -22,7 +22,7 @@ const toLogo = item => ({
 
 export default function ModesBand() {
   // Los modos salen de las líneas que tiene la API; los canales son del producto.
-  const { data: lineas } = useApi(() => api.lineas());
+  const { data: lineas } = useApi(() => api.lineasCB());
   const modos = lineas ? [...new Set([...lineas.values()].map(l => l.modo))] : [];
   const items = [...modos.map(m => ({ icon: ICON_OF_MODO[m] ?? 'bus', label: modeLabel(m) })), ...CHANNELS];
 
