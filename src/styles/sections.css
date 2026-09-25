@@ -1927,21 +1927,6 @@
   color: rgba(255, 255, 255, 0.5);
 }
 
-/* ============ CURSOR ============ */
-.cursor-ring {
-  position: fixed;
-  top: 0;
-  left: 0;
-  z-index: 9999;
-  width: 34px;
-  height: 34px;
-  margin: -17px 0 0 -17px;
-  border-radius: 50%;
-  border: 2px solid #fff;
-  mix-blend-mode: difference;
-  pointer-events: none;
-}
-
 /* ============ KEYFRAMES ============ */
 @keyframes kenburns {
   from {

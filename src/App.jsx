@@ -10,13 +10,11 @@ import Statement from './components/Statement';
 import AppSection from './components/AppSection';
 import FinalCTA from './components/FinalCTA';
 import Footer from './components/Footer';
-import CursorRing from './components/CursorRing';
 import './styles/sections.css';
 
 export default function App() {
   return (
     <>
-      <CursorRing />
       <Navbar />
       <main>
         <Hero />
