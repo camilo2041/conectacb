@@ -22,7 +22,7 @@ export default function Benefits() {
             <p>Sin descargar nada. Escribe como le escribes a un amigo.</p>
             <div className="bubbles">
               <span className="bubble bubble--me">¿Cómo llego a Portal Tunal?</span>
-              <span className="bubble">Toma el cable en Manitas: llegas en 11 min</span>
+              <span className="bubble">Toma TransMiCable en Manitas: llegas en 11 min</span>
             </div>
           </SpotlightCard>
 
@@ -47,7 +47,7 @@ export default function Benefits() {
             <p>Bloqueos, derrumbes y demoras reportados en tiempo real.</p>
             <div className="alerts">
               <span className="alert alert--crit">Derrumbe · Vía a Quiba</span>
-              <span className="alert alert--ok">Cable operando normal</span>
+              <span className="alert alert--ok">TransMiCable operando normal</span>
             </div>
           </SpotlightCard>
 

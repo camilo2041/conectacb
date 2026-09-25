@@ -4,7 +4,7 @@ import Icon from './Icon';
 
 const STEPS = [
   { title: 'Escribe tu destino', text: 'Por WhatsApp o en la web, con tus propias palabras.' },
-  { title: 'La IA cruza todo', text: 'Horarios del cable y el SITP, más colectivos y rutas veredales.' },
+  { title: 'La IA combina todo', text: 'Horarios de TransMiCable y SITP, más colectivos y rutas veredales.' },
   { title: 'Sal a la hora justa', text: 'Recibe tu ruta, tu tarifa y avisos si algo cambia.' }
 ];
 
@@ -68,7 +68,7 @@ export default function HowItWorks() {
                 </div>
                 <div className="screen__legs">
                   <span style={{ '--c': '#12a150' }}>Veredal 24′</span>
-                  <span style={{ '--c': '#ff5a3d' }}>Cable 13′</span>
+                  <span style={{ '--c': '#ff5a3d' }}>TransMiCable 13′</span>
                 </div>
               </Screen>
             </Card>

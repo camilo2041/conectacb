@@ -13,7 +13,7 @@ export default function Statement() {
           containerClassName="statement__reveal"
           textClassName="statement__text"
         >
-          Deja de adivinar cuándo pasa tu ruta. Cable, bus, colectivo y ruta veredal, por fin en una sola respuesta.
+          Deja de adivinar cuándo pasa tu ruta. TransMiCable, SITP, colectivos y rutas veredales, por fin en una sola respuesta.
         </ScrollReveal>
       </div>
 
