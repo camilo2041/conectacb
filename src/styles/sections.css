@@ -189,6 +189,12 @@
   will-change: transform;
 }
 
+.hero__media picture {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
 .hero__media img {
   width: 100%;
   height: 100%;
@@ -1709,6 +1715,7 @@
   background: conic-gradient(var(--cyan), var(--blue), var(--violet), var(--magenta), var(--sunset), var(--cyan));
   filter: blur(60px);
   opacity: 0.4;
+  will-change: transform;
   animation: spin 16s linear infinite;
 }
 

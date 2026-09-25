@@ -5,10 +5,10 @@ import ShinyText from './reactbits/ShinyText';
 import Icon from './Icon';
 import { MODES, QUICK_TRIPS, planTrip } from '../data/trips';
 
-const money = n => `$${n.toLocaleString('es-CO')}`;
+const money = n => `$${String(n).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;
 
-function arrivalTime(minutes) {
-  const d = new Date(Date.now() + minutes * 60000);
+function arrivalTime(now, minutes) {
+  const d = new Date(now + minutes * 60000);
   return d.toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
 }
 
@@ -16,9 +16,14 @@ export default function Planner() {
   const [query, setQuery] = useState(QUICK_TRIPS[2]);
   const [status, setStatus] = useState('idle');
   const [result, setResult] = useState(() => planTrip(QUICK_TRIPS[2]));
+  // La hora se toma en el navegador; el HTML pre-renderado no puede saberla.
+  const [now, setNow] = useState(null);
   const timer = useRef(null);
 
-  useEffect(() => () => clearTimeout(timer.current), []);
+  useEffect(() => {
+    setNow(Date.now());
+    return () => clearTimeout(timer.current);
+  }, []);
 
   const run = text => {
     const q = text ?? query;
@@ -27,6 +32,7 @@ export default function Planner() {
     setStatus('thinking');
     timer.current = setTimeout(() => {
       const plan = planTrip(q);
+      setNow(Date.now());
       setResult(plan);
       setStatus(plan ? 'done' : 'notfound');
     }, 900);
@@ -132,7 +138,7 @@ export default function Planner() {
                     </div>
                     <div className="answer__meta">
                       <span>
-                        <Icon name="clock" size={16} /> Llegas {arrivalTime(total)}
+                        <Icon name="clock" size={16} /> {now ? `Llegas ${arrivalTime(now, total)}` : `Llegas en ${total} min`}
                       </span>
                       <span>
                         <Icon name="coin" size={16} /> {money(result.fare)}

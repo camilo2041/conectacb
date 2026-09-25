@@ -6,7 +6,7 @@ import { WHATSAPP_URL } from '../config';
 
 export default function FinalCTA() {
   return (
-    <section className="final" aria-label="Empieza ahora">
+    <section className="final" id="empieza" aria-label="Empieza ahora">
       <div className="container">
         <div className="final__panel">
           <div className="final__aurora" aria-hidden="true">

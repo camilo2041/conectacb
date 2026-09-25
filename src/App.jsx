@@ -1,16 +1,26 @@
+import { Suspense } from 'react';
 import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ModesBand from './components/ModesBand';
-import Planner from './components/Planner';
-import Stats from './components/Stats';
-import LiveMapSection from './components/LiveMapSection';
-import Benefits from './components/Benefits';
-import HowItWorks from './components/HowItWorks';
-import Statement from './components/Statement';
-import AppSection from './components/AppSection';
-import FinalCTA from './components/FinalCTA';
 import Footer from './components/Footer';
+import { lazySection } from './lib/lazySection';
 import './styles/sections.css';
+
+// Cada id coincide con el <section> que renderiza el componente.
+const Planner = lazySection('planear', () => import('./components/Planner'));
+const Stats = lazySection('cifras', () => import('./components/Stats'));
+const LiveMapSection = lazySection('mapa', () => import('./components/LiveMapSection'));
+const Benefits = lazySection('beneficios', () => import('./components/Benefits'));
+const HowItWorks = lazySection('como-funciona', () => import('./components/HowItWorks'));
+const Statement = lazySection('por-que', () => import('./components/Statement'));
+const AppSection = lazySection('app', () => import('./components/AppSection'));
+const FinalCTA = lazySection('empieza', () => import('./components/FinalCTA'));
+
+const Lazy = ({ component: Component }) => (
+  <Suspense fallback={null}>
+    <Component />
+  </Suspense>
+);
 
 export default function App() {
   return (
@@ -20,15 +30,15 @@ export default function App() {
         <Hero />
         <ModesBand />
         <div className="sheet">
-          <Planner />
-          <Stats />
-          <LiveMapSection />
-          <Benefits />
-          <HowItWorks />
+          <Lazy component={Planner} />
+          <Lazy component={Stats} />
+          <Lazy component={LiveMapSection} />
+          <Lazy component={Benefits} />
+          <Lazy component={HowItWorks} />
         </div>
-        <Statement />
-        <AppSection />
-        <FinalCTA />
+        <Lazy component={Statement} />
+        <Lazy component={AppSection} />
+        <Lazy component={FinalCTA} />
       </main>
       <Footer />
     </>

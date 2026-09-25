@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import Magnet from './reactbits/Magnet';
 import Icon from './Icon';
-import badge from '../assets/badge.png';
+import badge from '../assets/badge-80.webp';
 
 const LINKS = [
   { href: '#planear', label: 'Planear ruta' },

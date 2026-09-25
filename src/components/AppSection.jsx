@@ -3,7 +3,7 @@ import GradientText from './reactbits/GradientText';
 import SplitText from './reactbits/SplitText';
 import Magnet from './reactbits/Magnet';
 import Icon from './Icon';
-import badge from '../assets/badge.png';
+import badge from '../assets/badge-600.webp';
 import { WHATSAPP_URL } from '../config';
 
 const CHANNELS = [

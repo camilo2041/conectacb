@@ -3,7 +3,7 @@ import ScrollVelocity from './reactbits/ScrollVelocity';
 
 export default function Statement() {
   return (
-    <section className="statement" aria-label="Por qué ConectaCB">
+    <section className="statement" id="por-que" aria-label="Por qué ConectaCB">
       <div className="container">
         <ScrollReveal
           baseOpacity={0.12}

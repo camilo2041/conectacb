@@ -2,9 +2,22 @@ import { useRef } from 'react';
 import { motion, useScroll, useTransform } from 'motion/react';
 import Magnet from './reactbits/Magnet';
 import Icon from './Icon';
-import banner from '../assets/banner.jpg';
-import bannerMobile from '../assets/banner-mobile.jpg';
 import { WHATSAPP_URL } from '../config';
+
+const files = import.meta.glob('../assets/hero/banner-*.{avif,webp}', { eager: true, query: '?url', import: 'default' });
+
+function srcSet(ext) {
+  return Object.entries(files)
+    .filter(([path]) => path.endsWith(`.${ext}`))
+    .map(([path, url]) => ({ url, w: Number(path.match(/banner-(\d+)\./)[1]) }))
+    .sort((a, b) => a.w - b.w)
+    .map(({ url, w }) => `${url} ${w}w`)
+    .join(', ');
+}
+
+const AVIF = srcSet('avif');
+const WEBP = srcSet('webp');
+const FALLBACK = files['../assets/hero/banner-1080.webp'];
 
 export default function Hero() {
   const ref = useRef(null);
@@ -15,15 +28,18 @@ export default function Hero() {
   return (
     <section className="hero" id="top" ref={ref}>
       <motion.div className="hero__media" style={{ y, opacity: fade }}>
-        <img
-          src={banner}
-          srcSet={`${bannerMobile} 960w, ${banner} 1920w`}
-          sizes="100vw"
-          alt="ConectaCB: movilidad integrada con inteligencia artificial. TransMiCable al atardecer sobre las laderas de Ciudad Bolívar."
-          width="1920"
-          height="1082"
-          fetchPriority="high"
-        />
+        <picture>
+          <source type="image/avif" srcSet={AVIF} sizes="100vw" />
+          <img
+            src={FALLBACK}
+            srcSet={WEBP}
+            sizes="100vw"
+            alt="ConectaCB: movilidad integrada con inteligencia artificial. TransMiCable al atardecer sobre las laderas de Ciudad Bolívar."
+            width="1920"
+            height="1082"
+            fetchPriority="high"
+          />
+        </picture>
       </motion.div>
 
       <div className="hero__actions">

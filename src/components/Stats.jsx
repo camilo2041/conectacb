@@ -9,7 +9,7 @@ const STATS = [
 
 export default function Stats() {
   return (
-    <section className="stats" aria-label="ConectaCB en cifras">
+    <section className="stats" id="cifras" aria-label="ConectaCB en cifras">
       <div className="container stats__grid">
         {STATS.map(s => (
           <div className="stat" key={s.label}>

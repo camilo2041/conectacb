@@ -1,6 +1,6 @@
 :root {
-  --font-display: 'Lemon Milk', 'Century Gothic', 'CenturyGothic', 'Jost', system-ui, sans-serif;
-  --font-body: 'Century Gothic', 'CenturyGothic', 'Jost', system-ui, sans-serif;
+  --font-display: 'Lemon Milk', 'Century Gothic', 'CenturyGothic', 'Jost Variable', system-ui, sans-serif;
+  --font-body: 'Century Gothic', 'CenturyGothic', 'Jost Variable', system-ui, sans-serif;
 
   --bg: #f5f5fb;
   --surface: #ffffff;

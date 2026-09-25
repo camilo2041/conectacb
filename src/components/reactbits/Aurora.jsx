@@ -1,4 +1,3 @@
-import { Renderer, Program, Mesh, Color, Triangle } from 'ogl';
 import { useEffect, useRef } from 'react';
 
 import './Aurora.css';
@@ -129,7 +128,21 @@ export default function Aurora(props) {
   useEffect(() => {
     const ctn = ctnDom.current;
     if (!ctn) return;
+    let cleanup = () => {};
+    let cancelled = false;
 
+    import('ogl').then(ogl => {
+      if (!cancelled) cleanup = start(ctn, ogl);
+    });
+
+    return () => {
+      cancelled = true;
+      cleanup();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [amplitude, blend, lightMode]);
+
+  function start(ctn, { Renderer, Program, Mesh, Color, Triangle }) {
     const renderer = new Renderer({
       alpha: true,
       premultipliedAlpha: true,
@@ -181,8 +194,9 @@ export default function Aurora(props) {
     ctn.appendChild(gl.canvas);
 
     let animateId = 0;
+    let visible = false;
     const update = t => {
-      animateId = requestAnimationFrame(update);
+      animateId = visible ? requestAnimationFrame(update) : 0;
       const { time = t * 0.01, speed = 1.0 } = propsRef.current;
       program.uniforms.uTime.value = time * speed * 0.1;
       program.uniforms.uAmplitude.value = propsRef.current.amplitude ?? 1.0;
@@ -195,11 +209,18 @@ export default function Aurora(props) {
       });
       renderer.render({ scene: mesh });
     };
-    animateId = requestAnimationFrame(update);
+
+    // Solo anima mientras está en pantalla.
+    const io = new IntersectionObserver(([entry]) => {
+      visible = entry.isIntersecting;
+      if (visible && !animateId) animateId = requestAnimationFrame(update);
+    });
+    io.observe(ctn);
 
     resize();
 
     return () => {
+      io.disconnect();
       cancelAnimationFrame(animateId);
       window.removeEventListener('resize', resize);
       if (ctn && gl.canvas.parentNode === ctn) {
@@ -207,8 +228,7 @@ export default function Aurora(props) {
       }
       gl.getExtension('WEBGL_lose_context')?.loseContext();
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [amplitude, blend, lightMode]);
+  }
 
   return <div ref={ctnDom} className="aurora-container" />;
 }
