@@ -45,7 +45,8 @@ function toView(resp, lineas) {
     const label = modeLabel(linea?.modo ?? t.modo);
     legs.push({
       kind: t.modo === 'cable' ? 'cable' : t.modo === 'informal' ? 'informal' : 'formal',
-      label: `${label} · ${t.linea}`,
+      // Los códigos de la API (CB-01…) son internos: no son rutas de TransMilenio ni del SITP.
+      label: t.modo === 'informal' ? `${label} informal` : label,
       text: accent(linea ? lineRoute(linea.nombre) : t.linea),
       min: Math.max(1, Math.round(t.duracion_seg / 60))
     });
