@@ -9,8 +9,8 @@ import { SYSTEMS, modeLabel } from '../data/mapStyle';
 const PREGUNTA = { texto: 'de Manitas a Portal Tunal', hora: '07:00', dia: 'L' };
 const SEVERIDAD = { alta: 'crit', media: 'warn', baja: 'ok' };
 
-// La respuesta del asistente trae la tarifa con coma de miles ("$3,200"): se muestra en formato colombiano.
-const formatoPesos = texto => texto.replace(/\$([\d,]+)/g, (_, n) => money(Number(n.replace(/,/g, ''))));
+// Normaliza la tarifa del texto del asistente al formato colombiano ("$3.550"), venga con coma o con punto.
+const formatoPesos = texto => texto.replace(/\$(\d[\d.,]*\d|\d)/g, (_, n) => money(Number(n.replace(/[.,]/g, ''))));
 
 function rango(tarifas) {
   const min = Math.min(...tarifas);

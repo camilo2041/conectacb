@@ -318,6 +318,30 @@ def test_asistente_lenguaje_natural():
     assert "min" in data["respuesta"]
 
 
+@pytest.mark.parametrize(
+    "texto",
+    [
+        "Voy de Sierra Morena al Portal Tunal",
+        "desde Sierra Morena hasta el Portal Tunal",
+        "como llego del barrio Sierra Morena a la estacion Portal Tunal?",
+    ],
+)
+def test_asistente_entiende_articulos(texto):
+    from app.main import _parsear_texto
+
+    origen, destino = _parsear_texto(texto)
+    assert "Sierra Morena" in origen and "Portal Tunal" in destino
+
+
+def test_asistente_responde_con_codigo_y_paraderos():
+    body = {"texto": "Voy de Sierra Morena al Portal Tunal", "hora": "12:00", "dia": "L"}
+    data = client.post("/asistente", json=body).json()
+    assert data["ruta"] is not None
+    assert "toma el SITP 6-3" in data["respuesta"] or "toma el alimentador" in data["respuesta"]
+    assert "bajate en Portal Tunal" in data["respuesta"]
+    assert "$3.550" in data["respuesta"]
+
+
 def test_cable_pilonas():
     r = client.get("/cable/pilonas")
     assert r.status_code == 200

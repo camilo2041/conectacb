@@ -96,7 +96,8 @@ def _paso_linea(tramo) -> str:
     if not tramo.codigo:
         return lin.nombre
     texto = f"toma {_NOMBRE_MODO.get(lin.modo, 'la ruta')} {tramo.codigo}"
-    destino = lin.propiedades.get("destino")
+    # El GTFS nombra los alimentadores "Barrio || Portal": se muestra "Barrio - Portal".
+    destino = " - ".join(p.strip() for p in (lin.propiedades.get("destino") or "").split("||") if p.strip())
     if destino:
         texto += f" ({destino})"
     if tramo.parada_desde:
@@ -156,7 +157,8 @@ def _resumir_ruta(resp: RutaResponse) -> str:
             continue
         compacto.append(paso)
     secuencia = ", luego ".join(p[1] for p in compacto)
-    texto = f"Ruta de {minutos} min, tarifa ${int(resp.tarifa_total_cop):,}."
+    tarifa = f"{int(resp.tarifa_total_cop):,}".replace(",", ".")  # formato colombiano: $3.550
+    texto = f"Ruta de {minutos} min, tarifa ${tarifa}."
     if secuencia:
         texto += f" {secuencia[0].upper()}{secuencia[1:]}."
     if resp.transbordos:
@@ -170,14 +172,16 @@ def _resumir_ruta(resp: RutaResponse) -> str:
 def _parsear_texto(texto: str) -> tuple[str | None, str | None]:
     """Devuelve (origen_texto, destino_texto) desde lenguaje natural."""
     t = (texto or "").strip()
+    # "de X a Y", "desde el X hasta la Y", "voy de X al Y", "del X pa' Y"...
+    destino = r"(?:a|al|hasta|para|pa'?|hacia)(?:\s+(?:el|la|los|las))?"
     m = re.search(
-        r"\b(?:de|desde)\s+(.+?)\s+(?:a|hasta|para|hacia)\s+(.+?)\s*[?.!]*$",
+        rf"\b(?:de|desde|del)(?:\s+(?:el|la|los|las))?\s+(.+?)\s+{destino}\s+(.+?)\s*[?.!]*$",
         t,
         re.IGNORECASE,
     )
     if m:
         return m.group(1).strip(), m.group(2).strip()
-    m2 = re.search(r"\b(?:a|hasta|para|hacia)\s+(.+?)\s*[?.!]*$", t, re.IGNORECASE)
+    m2 = re.search(rf"\b{destino}\s+(.+?)\s*[?.!]*$", t, re.IGNORECASE)
     if m2:
         return None, m2.group(1).strip()
     return None, None
