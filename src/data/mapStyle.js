@@ -14,6 +14,7 @@ export const systemOf = tipo => (tipo === 'cable' ? 'cable' : tipo === 'informal
 const MODE_LABELS = {
   cable: 'TransMiCable',
   troncal: 'TransMilenio',
+  alimentador: 'Alimentador',
   sitp: 'SITP',
   colectivo: 'Colectivo',
   buseta: 'Buseta',

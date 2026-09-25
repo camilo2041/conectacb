@@ -16,12 +16,12 @@
         "modo": "cable",
         "tipo": "cable",
         "operador": "TransMilenio",
-        "tarifa": 3200,
-        "tiempo_espera_seg": 180,
-        "frecuencia_min": 4,
+        "tarifa": 3550,
+        "tiempo_espera_seg": 8,
+        "frecuencia_min": 0.27,
         "horario": {
           "ini": "04:30",
-          "fin": "23:00",
+          "fin": "22:15",
           "dias": [
             "L",
             "M",
@@ -58,7 +58,7 @@
           ]
         ],
         "integrado": true,
-        "fuente": "OSM + Pilona_cable.geojson (23 pilonas, 3 subtramos)",
+        "fuente": "Trazado y pilonas: datos abiertos; tarifa y horario: GTFS TransMilenio 2026-08-18",
         "nota": "Trazado real desde las pilonas; estaciones reales de TransMiCable."
       },
       "geometry": {
@@ -171,113 +171,6 @@
           [
             -74.158767,
             4.550082
-          ]
-        ]
-      }
-    },
-    {
-      "type": "Feature",
-      "properties": {
-        "id": "TMC-02",
-        "nombre": "Troncal TransMilenio Portal Tunal - Las Aguas",
-        "modo": "troncal",
-        "tipo": "troncal",
-        "operador": "TransMilenio",
-        "tarifa": 3200,
-        "tiempo_espera_seg": 180,
-        "frecuencia_min": 3,
-        "horario": {
-          "ini": "04:00",
-          "fin": "23:30",
-          "dias": [
-            "L",
-            "M",
-            "X",
-            "J",
-            "V",
-            "S",
-            "D"
-          ]
-        },
-        "velocidad_kmh": 25,
-        "estaciones": [
-          "Portal Tunal",
-          "Sena",
-          "La Despensa",
-          "Bosa",
-          "Las Aguas"
-        ],
-        "paradas": [
-          [
-            -74.139249,
-            4.569675
-          ],
-          [
-            -74.134,
-            4.575
-          ],
-          [
-            -74.126,
-            4.582
-          ],
-          [
-            -74.116,
-            4.589
-          ],
-          [
-            -74.106,
-            4.594
-          ],
-          [
-            -74.094,
-            4.597
-          ],
-          [
-            -74.083,
-            4.598
-          ],
-          [
-            -74.0755,
-            4.5987
-          ]
-        ],
-        "integrado": true,
-        "nota": "Trazado aproximado (demo); Portal Tunal es la coordenada real."
-      },
-      "geometry": {
-        "type": "LineString",
-        "coordinates": [
-          [
-            -74.139249,
-            4.569675
-          ],
-          [
-            -74.134,
-            4.575
-          ],
-          [
-            -74.126,
-            4.582
-          ],
-          [
-            -74.116,
-            4.589
-          ],
-          [
-            -74.106,
-            4.594
-          ],
-          [
-            -74.094,
-            4.597
-          ],
-          [
-            -74.083,
-            4.598
-          ],
-          [
-            -74.0755,
-            4.5987
           ]
         ]
       }

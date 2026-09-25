@@ -299,11 +299,12 @@ def test_tarifa_integrada_cable_troncal():
         "hora": "12:00",
     }
     data = client.post("/ruta", json=body).json()
-    assert {"TMC-01", "TMC-02"}.issubset(set(data["formales_usadas"]))
-    # Cable (3200) + troncal integrada (0) = 3200
-    assert data["tarifa_total_cop"] == 3200
-    tarifas = {t["linea"]: t["tarifa_cop"] for t in data["tramos"] if t["linea"]}
-    assert tarifas["TMC-02"] == 0
+    assert data["formales_usadas"][0] == "TMC-01"
+    sitp = [t for t in data["tramos"] if t["linea"] and t["linea"].startswith("SITP-")]
+    assert sitp, "del cable debe seguir en una ruta del SITP"
+    # Cable (3550, tarifa 2026) + SITP integrado (0) = 3550
+    assert data["tarifa_total_cop"] == 3550
+    assert all(t["tarifa_cop"] == 0 for t in sitp)
 
 
 def test_asistente_lenguaje_natural():
@@ -415,13 +416,29 @@ def test_tramos_encadenados(origen, destino):
         assert salto < 1.0, f"{anterior['modo']} {anterior['linea']} -> {siguiente['modo']} {siguiente['linea']}: salto de {salto:.0f} m"
 
 
+def test_sierra_morena_a_portal_tunal_usa_rutas_reales_del_sitp():
+    body = {
+        "origen": {"lat": 4.578093, "lon": -74.168718},  # Sierra Morena
+        "destino": {"lat": 4.569675, "lon": -74.139249},  # Portal Tunal
+        "usar_directo": False,
+        "hora": "12:00",
+        "dia": "L",
+    }
+    data = client.post("/ruta", json=body).json()
+    buses = [t for t in data["tramos"] if t["linea"]]
+    assert buses and all(t["codigo"] for t in buses), "solo rutas del SITP con su codigo publico"
+    assert not data["informales_usadas"]
+    assert buses[0]["parada_desde"] and buses[-1]["parada_hasta"].startswith("Portal Tunal")
+    assert data["tarifa_total_cop"] == 3550
+
+
 def test_alertas_informan_lineas_efectivas():
     alertas = {a["id"]: a for a in client.get("/alertas").json()}
     # Declaradas explicitamente.
     assert {"CB-05", "CB-09"}.issubset(alertas["AL-001"]["lineas_afectadas_efectivas"])
-    # Sin lineas declaradas, pero a menos de 150 m de la troncal: el ruteo se la aplica.
+    # Sin lineas declaradas, pero a menos de 150 m de rutas del SITP: el ruteo se las aplica.
     assert alertas["AL-003"]["lineas_afectadas"] == []
-    assert "TMC-02" in alertas["AL-003"]["lineas_afectadas_efectivas"]
+    assert any(l.startswith("SITP-") for l in alertas["AL-003"]["lineas_afectadas_efectivas"])
 
 
 def test_alertas_crud(monkeypatch, tmp_path):

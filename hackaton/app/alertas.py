@@ -59,6 +59,10 @@ def _dist_geometrias(a: list[Punto], b: list[Punto]) -> float:
     return mejor
 
 
+def _bbox_cruzan(a: tuple[float, float, float, float], b: tuple[float, float, float, float]) -> bool:
+    return a[0] <= b[2] and b[0] <= a[2] and a[1] <= b[3] and b[1] <= a[3]
+
+
 @dataclass
 class Alerta:
     id: str
@@ -101,6 +105,9 @@ class Alerta:
         if not self.geometria:
             return False
         alerta_pts = puntos_de_geometria(self.geometria)
+        # Descarte rapido: con cientos de rutas del SITP, casi todas quedan lejos de la alerta.
+        if alerta_pts and not _bbox_cruzan(geo.bbox_expandida(geo.bbox(alerta_pts), radio_m), linea.bbox):
+            return False
         return _dist_geometrias(alerta_pts, list(linea.geometria)) <= radio_m
 
     def afecta_geometria(self, puntos: list[Punto], radio_m: float) -> bool:

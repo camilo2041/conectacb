@@ -82,10 +82,28 @@ def _todas_lineas() -> list[LineaInformal]:
 
 
 def _linea_por_id(id_linea: str) -> LineaInformal | None:
-    for lin in _todas_lineas():
-        if lin.id == id_linea:
-            return lin
-    return None
+    return cargar_formales().por_id(id_linea) or cargar_informales().por_id(id_linea)
+
+
+_NOMBRE_MODO = {"alimentador": "el alimentador", "troncal": "el TransMilenio", "sitp": "el SITP"}
+
+
+def _paso_linea(tramo) -> str:
+    """Instruccion de un tramo en bus o cable, con el codigo y los paraderos si vienen del GTFS."""
+    lin = _linea_por_id(tramo.linea)
+    if lin is None:
+        return tramo.linea
+    if not tramo.codigo:
+        return lin.nombre
+    texto = f"toma {_NOMBRE_MODO.get(lin.modo, 'la ruta')} {tramo.codigo}"
+    destino = lin.propiedades.get("destino")
+    if destino:
+        texto += f" ({destino})"
+    if tramo.parada_desde:
+        texto += f" en {tramo.parada_desde}"
+    if tramo.parada_hasta:
+        texto += f" y bajate en {tramo.parada_hasta}"
+    return texto
 
 
 def _zona_geometria(zona) -> dict:
@@ -126,8 +144,7 @@ def _resumir_ruta(resp: RutaResponse) -> str:
     pasos: list[tuple[str, str]] = []
     for tramo in resp.tramos:
         if tramo.modo in {"cable", "formal", "informal"} and tramo.linea:
-            lin = _linea_por_id(tramo.linea)
-            pasos.append(("linea", lin.nombre if lin else tramo.linea))
+            pasos.append(("linea", _paso_linea(tramo)))
         elif tramo.modo == "directo":
             pasos.append(("accion", "ve por la via directa"))
         elif tramo.modo == "acceso":
@@ -252,9 +269,16 @@ def listar_formales() -> dict:
 
 
 @app.get("/lineas", tags=["lineas"])
-def listar_lineas() -> dict:
-    lineas = _todas_lineas()
-    return {"total": len(lineas), "lineas": [l.resumen() for l in lineas]}
+def listar_lineas(
+    geometria: bool = Query(True, description="Incluir el trazado de cada linea (la respuesta pesa varios MB con el SITP)."),
+    modo: str | None = Query(None, description="Filtrar por modo: cable, troncal, alimentador, sitp, colectivo..."),
+    codigo: str | None = Query(None, description="Filtrar por codigo del SITP, p. ej. '6-3'."),
+) -> dict:
+    lineas = [
+        l for l in _todas_lineas()
+        if (modo is None or l.modo == modo) and (codigo is None or (l.codigo or "").lower() == codigo.lower())
+    ]
+    return {"total": len(lineas), "lineas": [l.resumen(geometria=geometria) for l in lineas]}
 
 
 @app.get("/lineas/{id_linea}", tags=["lineas"])
@@ -284,7 +308,7 @@ def horario_linea(
         "hora_consultada": h,
         "dia_consultado": d,
         "activo": lin.activo(h, d),
-        "espera_seg": round(lin.espera_seg(h), 1),
+        "espera_seg": round(lin.espera_seg(h, d), 1),
     }
 
 
@@ -305,7 +329,7 @@ def horarios(
                 "horario": lin.horario,
                 "frecuencia_min": lin.frecuencia_min,
                 "activo": lin.activo(h, d),
-                "espera_seg": round(lin.espera_seg(h), 1),
+                "espera_seg": round(lin.espera_seg(h, d), 1),
             }
         )
     return {"hora_consultada": h, "dia_consultado": d, "total": len(salida), "lineas": salida}
@@ -445,6 +469,9 @@ def ruta_mapa(req: RutaRequest) -> dict:
                     "capa": "ruta",
                     "modo": tramo.modo,
                     "linea": tramo.linea,
+                    "codigo": tramo.codigo,
+                    "parada_desde": tramo.parada_desde,
+                    "parada_hasta": tramo.parada_hasta,
                     "color": COLORES_MODO.get(tramo.modo, "#111827"),
                     "distancia_m": tramo.distancia_m,
                     "duracion_seg": tramo.duracion_seg,
@@ -479,6 +506,9 @@ def capas(
     incluir_lineas: bool = Query(True),
     incluir_alertas: bool = Query(True),
     incluir_pilonas: bool = Query(True),
+    incluir_sitp: bool = Query(
+        False, description="Incluir las ~400 rutas del SITP (GTFS). Por defecto no: la respuesta pasa de 20 KB a varios MB."
+    ),
 ) -> dict:
     """Capas base para el mapa: zonas SITP + lineas + alertas + pilonas del cable."""
     features: list[dict] = []
@@ -493,6 +523,8 @@ def capas(
             )
     if incluir_lineas:
         for lin in _todas_lineas():
+            if lin.codigo and not incluir_sitp:
+                continue
             features.append(
                 {
                     "type": "Feature",
@@ -501,6 +533,7 @@ def capas(
                         "capa": "linea",
                         "id": lin.id,
                         "nombre": lin.nombre,
+                        "codigo": lin.codigo,
                         "tipo": lin.tipo,
                         "modo": lin.modo,
                         "tarifa": lin.tarifa,

@@ -41,11 +41,11 @@ export const api = {
   lugares: () => once('lugares', () => request('/lugares')),
   health: () => once('health', () => request('/health')),
   tarifas: () => once('tarifas', () => request('/tarifas')),
-  // Catálogo id -> línea.
-  lineas: () => once('lineas', () => request('/lineas').then(r => new Map(r.lineas.map(l => [l.id, l])))),
+  // Catálogo id -> línea, sin trazados (con las ~400 rutas del SITP pesarían varios MB).
+  lineas: () => once('lineas', () => request('/lineas?geometria=false').then(r => new Map(r.lineas.map(l => [l.id, l])))),
   // Solo las líneas que pasan por Ciudad Bolívar: la API también trae rutas de prueba de otras
   // localidades (Suba, Usme, Kennedy, Bosa, Calle 80) que no se muestran ni se cuentan.
-  lineasCB: () => api.lineas().then(m => new Map([...m].filter(([, l]) => passesThroughCB(l.geometria))))
+  lineasCB: () => api.lineas().then(m => new Map([...m].filter(([, l]) => l.en_ciudad_bolivar)))
 };
 
 export const passesThroughCB = geometria => (geometria?.coordinates ?? []).some(c => inCB(toLatLng(c)));

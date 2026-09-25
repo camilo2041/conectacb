@@ -4,7 +4,7 @@ import { api } from '../lib/api';
 import { useApi } from '../lib/useApi';
 import { modeLabel } from '../data/mapStyle';
 
-const ICON_OF_MODO = { cable: 'cable', troncal: 'bus', sitp: 'bus', buseta: 'bus', colectivo: 'van', campero: 'van', mototaxi: 'moto' };
+const ICON_OF_MODO = { cable: 'cable', troncal: 'bus', alimentador: 'bus', sitp: 'bus', buseta: 'bus', colectivo: 'van', campero: 'van', mototaxi: 'moto' };
 const CHANNELS = [
   { icon: 'chat', label: 'WhatsApp' },
   { icon: 'globe', label: 'App web' }

@@ -283,6 +283,21 @@ Paraíso; `CB-03` arranca en Juan Pablo II; `CB-01` termina en Portal Tunal).
 ```
 Se cargan todos los `rutas_informales*.geojson` y `rutas_formales*.geojson`.
 
+### SITP real (GTFS de TransMilenio)
+`data/rutas_formales_sitp.geojson` trae las ~400 variantes de troncales, alimentadores y
+zonales con paradero en Ciudad Bolívar, con sus paraderos, tiempos entre paraderos y salidas
+programadas por tipo de día. Sale del GTFS oficial (portal de datos abiertos de TransMilenio,
+colección "GTFS Estáticos"). Para actualizarlo con una publicación nueva:
+
+```bash
+python scripts/importar_gtfs.py GTFS_AAAAMMDD.zip --fecha AAAA-MM-DD
+```
+
+Las rutas del SITP responden con su código público (`codigo`: `6-3`, `H13`…) y los
+nombres de los paraderos de subida y bajada (`parada_desde`, `parada_hasta`). `/capas`
+no las incluye salvo con `incluir_sitp=true`, y `/lineas?geometria=false` las lista sin
+trazados. Tarifa 2026: $3.550, transbordos gratis en 125 minutos con tarjeta personalizada.
+
 ### Alertas (`data/alertas.json`)
 Campos: `id, tipo, titulo, descripcion, severidad, retraso_seg, lineas_afectadas,
 geometria (Point/LineString/Polygon), vigencia {desde, hasta}, fuente, activo`.

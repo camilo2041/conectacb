@@ -14,7 +14,9 @@ export default function Stats() {
   if (data) {
     const [health, lineas, alertas] = data;
     const estaciones = [...lineas.values()].filter(l => l.tipo === 'cable').reduce((s, l) => s + l.num_paradas, 0);
-    const valores = [lineas.size, estaciones, health.lugares, alertas.length];
+    // Las variantes de una misma ruta del SITP (ida, vuelta, horarios) comparten código: se cuentan una vez.
+    const rutas = new Set([...lineas.values()].map(l => l.codigo ?? l.id)).size;
+    const valores = [rutas, estaciones, health.lugares, alertas.length];
     stats = stats.map((s, i) => ({ ...s, value: valores[i] }));
   }
 

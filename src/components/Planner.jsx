@@ -45,9 +45,11 @@ function toView(resp, lineas) {
     const label = modeLabel(linea?.modo ?? t.modo);
     legs.push({
       kind: t.modo === 'cable' ? 'cable' : t.modo === 'informal' ? 'informal' : 'formal',
-      // Los códigos de la API (CB-01…) son internos: no son rutas de TransMilenio ni del SITP.
-      label: t.modo === 'informal' ? `${label} informal` : label,
-      text: accent(linea ? lineRoute(linea.nombre) : t.linea),
+      // Rutas del SITP: su código público (6-3, H13…). Los códigos CB-01… de las informales son internos.
+      label: t.codigo ? `${label} ${t.codigo}` : t.modo === 'informal' ? `${label} informal` : label,
+      text: t.parada_desde
+        ? `${t.parada_desde} → ${t.parada_hasta}`
+        : accent(linea ? lineRoute(linea.nombre) : t.linea),
       min: Math.max(1, Math.round(t.duracion_seg / 60))
     });
   }

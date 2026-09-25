@@ -24,7 +24,9 @@ class Pesos(BaseModel):
 class OpcionesRuteo(BaseModel):
     max_transbordos: int = Field(2, ge=0, le=5)
     radio_acceso_m: float = Field(1500.0, ge=100, le=10000)
-    max_paradas_por_extremo: int = Field(6, ge=1, le=30)
+    max_paradas_por_extremo: int = Field(
+        6, ge=1, le=30, description="Sin efecto desde que el ruteo usa el SITP completo; se conserva por compatibilidad."
+    )
 
 
 class RutaRequest(BaseModel):
@@ -80,6 +82,10 @@ class Tramo(BaseModel):
     duracion_seg: float
     tarifa_cop: float
     geometria: dict[str, Any]
+    codigo: str | None = Field(None, description="Codigo publico de la ruta del SITP (p. ej. '6-3', 'H13').")
+    parada_desde: str | None = Field(None, description="Paradero o estacion donde se sube (rutas del SITP).")
+    parada_hasta: str | None = Field(None, description="Paradero o estacion donde se baja (rutas del SITP).")
+    espera_seg: float | None = Field(None, description="Espera estimada antes de subir, incluida en la duracion total.")
 
 
 class ZonaResumen(BaseModel):

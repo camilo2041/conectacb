@@ -10,9 +10,9 @@ from .config import settings
 _DEFECTO = {
     "moneda": "COP",
     "sistema_integrado": "TransMilenio",
-    "ventana_integracion_min": 110,
+    "ventana_integracion_min": 125,
     "tipos_integrados": ["cable", "formal", "troncal", "alimentador", "sitp", "urbano"],
-    "tarifa_base_troncal": 3200,
+    "tarifa_base_troncal": 3550,
 }
 
 

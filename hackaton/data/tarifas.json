@@ -1,8 +1,10 @@
 {
   "moneda": "COP",
   "sistema_integrado": "TransMilenio",
-  "ventana_integracion_min": 110,
+  "ventana_integracion_min": 125,
   "tipos_integrados": ["cable", "formal", "troncal", "alimentador", "sitp", "urbano"],
-  "tarifa_base_troncal": 3200,
-  "nota": "TransMiCable y SITP zonal estan integrados con TransMilenio: dentro de la ventana, el segundo abordaje integrado no cobra. Los modos informales (colectivo, buseta, mototaxi, campero) no son integrados y cobran su propia tarifa."
+  "tarifa_base_troncal": 3550,
+  "vigencia": "2026-01-14",
+  "fuente": "Tarifa: fare_attributes.txt del GTFS de TransMilenio (2026-08-18). Transbordos: Abece ajuste tarifario 2026 de TransMilenio.",
+  "nota": "Troncal, zonal, alimentador y TransMiCable cuestan lo mismo y estan integrados: con tarjeta personalizada, los transbordos dentro de 125 minutos no se cobran. Los modos informales (colectivo, buseta, mototaxi, campero) no son integrados y cobran su propia tarifa."
 }
