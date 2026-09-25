@@ -43,7 +43,7 @@ export default function Navbar() {
         <div className="nav__actions">
           <Magnet padding={40} magnetStrength={4}>
             <a href="#planear" className="btn btn-brand nav__cta">
-              Probar gratis
+              Probar el asistente
             </a>
           </Magnet>
           <button

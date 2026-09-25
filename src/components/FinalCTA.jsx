@@ -14,7 +14,7 @@ export default function FinalCTA() {
           </div>
           <div className="final__content">
             <BlurText as="h2" text="Tu próxima ruta empieza aquí." className="display final__title" delay={110} direction="bottom" />
-            <p>Gratis para la comunidad. Sin registro, sin descargas.</p>
+            <p>Sin registro y sin descargas: pregunta por WhatsApp o desde la web.</p>
             <div className="final__actions">
               <Magnet padding={50} magnetStrength={4}>
                 <a href={WHATSAPP_URL} target="_blank" rel="noreferrer" className="btn btn-brand">

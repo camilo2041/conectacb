@@ -1,22 +1,29 @@
 import CountUp from './reactbits/CountUp';
-
-const STATS = [
-  { to: 5, suffix: '', label: 'sistemas de transporte en un solo chat' },
-  { to: 120, suffix: '+', label: 'rutas y paraderos mapeados' },
-  { to: 24, suffix: '/7', label: 'disponible, también de madrugada' },
-  { to: 9, from: 0, down: true, suffix: '', label: 'apps que descargar' }
-];
+import { api } from '../lib/api';
+import { useApi } from '../lib/useApi';
 
 export default function Stats() {
+  const { data } = useApi(() => Promise.all([api.health(), api.lineas(), api.alertas()]));
+
+  let stats = [
+    { label: 'rutas integradas en el planeador' },
+    { label: 'estaciones de TransMiCable' },
+    { label: 'barrios, veredas y estaciones que el asistente reconoce' },
+    { label: 'novedades activas reportadas' }
+  ];
+  if (data) {
+    const [health, lineas, alertas] = data;
+    const estaciones = [...lineas.values()].filter(l => l.tipo === 'cable').reduce((s, l) => s + l.num_paradas, 0);
+    const valores = [health.rutas_formales + health.rutas_informales, estaciones, health.lugares, alertas.length];
+    stats = stats.map((s, i) => ({ ...s, value: valores[i] }));
+  }
+
   return (
     <section className="stats" id="cifras" aria-label="ConectaCB en cifras">
       <div className="container stats__grid">
-        {STATS.map(s => (
+        {stats.map(s => (
           <div className="stat" key={s.label}>
-            <div className="stat__num display">
-              <CountUp to={s.to} from={s.from ?? 0} direction={s.down ? 'down' : 'up'} duration={2} />
-              <span>{s.suffix}</span>
-            </div>
+            <div className="stat__num display">{s.value === undefined ? '–' : <CountUp to={s.value} duration={1.6} />}</div>
             <p>{s.label}</p>
           </div>
         ))}

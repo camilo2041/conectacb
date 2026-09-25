@@ -1,33 +1,36 @@
 import LogoLoop from './reactbits/LogoLoop';
 import Icon from './Icon';
+import { api } from '../lib/api';
+import { useApi } from '../lib/useApi';
+import { modeLabel } from '../data/mapStyle';
 
-const ITEMS = [
-  { icon: 'cable', label: 'TransMiCable' },
-  { icon: 'bus', label: 'SITP' },
-  { icon: 'bus', label: 'TransMilenio' },
-  { icon: 'van', label: 'Colectivos' },
-  { icon: 'van', label: 'Rutas veredales' },
-  { icon: 'walk', label: 'Tramos a pie' },
+const ICON_OF_MODO = { cable: 'cable', troncal: 'bus', sitp: 'bus', buseta: 'bus', colectivo: 'van', campero: 'van', mototaxi: 'moto' };
+const CHANNELS = [
   { icon: 'chat', label: 'WhatsApp' },
   { icon: 'globe', label: 'App web' }
 ];
 
-const logos = ITEMS.map(i => ({
+const toLogo = item => ({
   node: (
     <span className="mode-pill">
-      <Icon name={i.icon} size={20} />
-      {i.label}
+      <Icon name={item.icon} size={20} />
+      {item.label}
     </span>
   ),
-  ariaLabel: i.label
-}));
+  ariaLabel: item.label
+});
 
 export default function ModesBand() {
+  // Los modos salen de las líneas que tiene la API; los canales son del producto.
+  const { data: lineas } = useApi(() => api.lineas());
+  const modos = lineas ? [...new Set([...lineas.values()].map(l => l.modo))] : [];
+  const items = [...modos.map(m => ({ icon: ICON_OF_MODO[m] ?? 'bus', label: modeLabel(m) })), ...CHANNELS];
+
   return (
     <section className="modes" aria-label="Sistemas integrados">
       <p className="modes__label">Todo el transporte de la localidad, en una sola respuesta</p>
       <LogoLoop
-        logos={logos}
+        logos={items.map(toLogo)}
         speed={60}
         direction="left"
         logoHeight={44}

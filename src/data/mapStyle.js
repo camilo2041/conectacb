@@ -3,7 +3,7 @@
 // `desc` es el texto mientras cargan los datos; luego la leyenda lo arma con las líneas que envía la API.
 export const SYSTEMS = {
   cable: { label: 'TransMiCable', color: '#ff5a3d', style: 'solid', desc: 'Cable aéreo de Ciudad Bolívar' },
-  formal: { label: 'TransMilenio y SITP', color: '#1f63ff', style: 'dash', desc: 'Buses del sistema integrado' },
+  formal: { label: 'Sistema integrado', color: '#1f63ff', style: 'dash', desc: 'Buses del sistema integrado' },
   informal: { label: 'Informales', color: '#12a150', style: 'dot', desc: 'Colectivos, busetas, camperos y mototaxis' }
 };
 
@@ -30,7 +30,7 @@ export const EVENT_TYPES = {
   trafico: { label: 'Trancón', color: '#f59e0b', desc: 'Tráfico lento: los viajes por la zona tardan más' },
   desvio: { label: 'Desvío', color: '#7a3cff', desc: 'La ruta toma un recorrido alterno' },
   clima: { label: 'Clima', color: '#0891b2', desc: 'Lluvia o granizo que retrasa los viajes' },
-  otro: { label: 'Otra novedad', color: '#475569', desc: 'Reportes de la comunidad' }
+  otro: { label: 'Otra novedad', color: '#475569', desc: 'Otras novedades en la vía' }
 };
 
 export const eventType = tipo => EVENT_TYPES[tipo] ?? EVENT_TYPES.otro;

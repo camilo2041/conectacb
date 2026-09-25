@@ -8,8 +8,8 @@ import { WHATSAPP_URL } from '../config';
 
 const CHANNELS = [
   { icon: 'chat', title: 'WhatsApp', text: 'El canal que ya usas' },
-  { icon: 'globe', title: 'App web', text: 'Liviana, funciona con poca señal' },
-  { icon: 'pin', title: 'Mapa', text: 'Paraderos y alertas cerca de ti' }
+  { icon: 'globe', title: 'App web', text: 'Desde el navegador, sin instalar nada' },
+  { icon: 'pin', title: 'Mapa', text: 'Rutas, estaciones y novedades de la localidad' }
 ];
 
 export default function AppSection() {

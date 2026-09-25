@@ -876,6 +876,28 @@
   font-weight: 600;
 }
 
+.bubble--typing {
+  display: inline-flex;
+  gap: 4px;
+  padding: 13px 14px;
+}
+
+.bubble--typing i {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.6);
+  animation: bounce 1s ease-in-out infinite;
+}
+
+.bubble--typing i:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.bubble--typing i:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
 .mode-dots {
   display: flex;
   margin-top: auto;
@@ -934,12 +956,29 @@
   color: #0e7f55;
 }
 
+.alert--warn {
+  background: rgba(245, 158, 11, 0.12);
+  color: #a16207;
+}
+
+.fares {
+  display: grid;
+  gap: 6px;
+  margin-top: auto;
+  padding-top: 10px;
+}
+
+.fare__note {
+  color: var(--ink-3);
+  font-size: 0.76rem;
+}
+
 .fare {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: auto;
-  padding: 14px 16px;
+  gap: 10px;
+  padding: 10px 14px;
   border-radius: 14px;
   background: var(--surface-2);
   font-size: 0.88rem;
@@ -948,8 +987,9 @@
 
 .fare b {
   font-family: var(--font-display);
-  font-size: 1.4rem;
+  font-size: 1rem;
   color: var(--ink);
+  white-space: nowrap;
 }
 
 @media (max-width: 1100px) {
@@ -1611,6 +1651,20 @@
   margin: 4px 0 0;
   font-size: 0.94rem;
   color: var(--ink-2);
+}
+
+.how__sample {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: var(--ink-3);
+  font-size: 0.84rem;
+}
+
+.how__sample svg {
+  flex: none;
+  color: var(--blue);
 }
 
 .swap-stage {

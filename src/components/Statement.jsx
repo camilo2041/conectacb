@@ -13,13 +13,13 @@ export default function Statement() {
           containerClassName="statement__reveal"
           textClassName="statement__text"
         >
-          Deja de adivinar cuándo pasa tu ruta. TransMiCable, SITP, colectivos y rutas veredales, por fin en una sola respuesta.
+          Deja de adivinar cuándo pasa tu ruta. TransMiCable, TransMilenio, colectivos, busetas, camperos y mototaxis, por fin en una sola respuesta.
         </ScrollReveal>
       </div>
 
       <div className="statement__velocity">
         <ScrollVelocity
-          texts={['TransMiCable · SITP · TransMilenio ·', 'Colectivos · Rutas veredales · Jeeps ·']}
+          texts={['TransMiCable · TransMilenio · Colectivos ·', 'Busetas · Camperos · Mototaxis ·']}
           velocity={45}
           className="velocity-text"
           numCopies={4}

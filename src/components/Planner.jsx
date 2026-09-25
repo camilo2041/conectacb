@@ -155,7 +155,7 @@ export default function Planner() {
             from={{ opacity: 0, y: 50 }}
             to={{ opacity: 1, y: 0 }}
           />
-          <p className="lead">Dinos de dónde sales y a dónde vas. ConectaCB combina TransMiCable, SITP, colectivos y rutas veredales para darte la ruta más rápida.</p>
+          <p className="lead">Dinos de dónde sales y a dónde vas. ConectaCB combina TransMiCable, TransMilenio, colectivos, busetas, camperos y mototaxis para darte la ruta más rápida.</p>
 
           <div className="chips">
             {EXAMPLES.map(ex => (
@@ -199,7 +199,7 @@ export default function Planner() {
                     <i />
                     <i />
                   </span>
-                  Revisando TransMiCable, SITP y rutas informales…
+                  Revisando TransMiCable, TransMilenio y rutas informales…
                 </motion.div>
               )}
 

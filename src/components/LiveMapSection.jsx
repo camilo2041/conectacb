@@ -31,18 +31,19 @@ function normalize(capas, lugares, alertas) {
   return { lines, pylons, places, events };
 }
 
-// Descripción de cada sistema según las líneas que realmente envía la API.
-function systemDescs(lines) {
-  const descs = {};
+// Nombre y descripción de cada sistema según las líneas que realmente envía la API.
+function systemTexts(lines) {
+  const texts = {};
   for (const system of Object.keys(SYSTEMS)) {
     const own = lines.filter(l => l.system === system);
     if (!own.length) continue;
-    descs[system] =
-      own.length <= 2
-        ? own.map(l => accent(system === 'formal' ? l.nombre : lineRoute(l.nombre))).join(' · ')
-        : [...new Set(own.map(l => modeLabel(l.modo)))].join(' · ');
+    const modos = [...new Set(own.map(l => modeLabel(l.modo)))];
+    texts[system] = {
+      label: system === 'formal' ? modos.join(' y ') : SYSTEMS[system].label,
+      desc: own.length <= 2 ? own.map(l => accent(system === 'formal' ? l.nombre : lineRoute(l.nombre))).join(' · ') : modos.join(' · ')
+    };
   }
-  return descs;
+  return texts;
 }
 
 const stopHtml = p =>
@@ -308,7 +309,7 @@ export default function LiveMapSection() {
   };
 
   const lineCounts = data?.lines.reduce((acc, l) => ({ ...acc, [l.system]: (acc[l.system] ?? 0) + 1 }), {}) ?? {};
-  const descs = data ? systemDescs(data.lines) : {};
+  const texts = data ? systemTexts(data.lines) : {};
   const typeCounts = data?.events.reduce((acc, e) => ({ ...acc, [e.tipo]: (acc[e.tipo] ?? 0) + 1 }), {}) ?? {};
   const feed = data ? [...data.events].sort((a, b) => Date.parse(b.actualizado_en) - Date.parse(a.actualizado_en)) : [];
 
@@ -330,7 +331,7 @@ export default function LiveMapSection() {
             from={{ opacity: 0, y: 40 }}
             to={{ opacity: 1, y: 0 }}
           />
-          <p className="lead">Cada sistema con su color y cada novedad marcada donde ocurre, reportada por la comunidad.</p>
+          <p className="lead">Cada sistema con su color y cada novedad marcada donde ocurre.</p>
         </div>
 
         <div className="livemap__panel">
@@ -378,10 +379,10 @@ export default function LiveMapSection() {
                     <span className={`swatch swatch--${s.style}`} style={{ '--c': s.color }} />
                     <span className="legend-row__text">
                       <b>
-                        {s.label}
+                        {texts[k]?.label ?? s.label}
                         {data && <span className="legend-row__count">{lineCounts[k] ?? 0}</span>}
                       </b>
-                      <small>{descs[k] ?? s.desc}</small>
+                      <small>{texts[k]?.desc ?? s.desc}</small>
                     </span>
                     <span className="legend-row__check" aria-hidden="true" />
                   </button>

@@ -1,12 +1,31 @@
 import CardSwap, { Card } from './reactbits/CardSwap';
 import SplitText from './reactbits/SplitText';
 import Icon from './Icon';
+import { api } from '../lib/api';
+import { SAMPLE_TRIP, useApi } from '../lib/useApi';
+import { accent, lineRoute, money } from '../lib/text';
+import { SYSTEMS, modeLabel } from '../data/mapStyle';
 
 const STEPS = [
   { title: 'Escribe tu destino', text: 'Por WhatsApp o en la web, con tus propias palabras.' },
-  { title: 'La IA combina todo', text: 'Horarios de TransMiCable, SITP, colectivos y rutas veredales en una sola búsqueda.' },
-  { title: 'Sal a la hora justa', text: 'Recibe tu ruta, tu tarifa y avisos si algo cambia.' }
+  { title: 'El asistente combina todo', text: 'Horarios de TransMiCable, TransMilenio y rutas informales en una sola búsqueda.' },
+  { title: 'Sal a la hora justa', text: 'Recibe tu ruta, tu tarifa y las novedades que la afectan.' }
 ];
+
+const SYSTEM_OF_MODO = { cable: 'cable', informal: 'informal', formal: 'formal' };
+
+function toCards(resp, lineas) {
+  const r = resp.ruta;
+  if (!r?.tramos?.length) return null;
+  const legs = r.tramos
+    .filter(t => t.modo !== 'acceso' && t.modo !== 'directo')
+    .map(t => ({ linea: lineas.get(t.linea), system: SYSTEM_OF_MODO[t.modo], min: Math.max(1, Math.round(t.duracion_seg / 60)) }));
+  const minutes = Math.max(1, Math.round(r.duracion_seg / 60));
+  const [h, m] = SAMPLE_TRIP.hora.split(':').map(Number);
+  const hora = extra => new Date(2000, 0, 1, h, m + extra).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
+  const [llegada, ...meridiano] = hora(minutes).split(' ');
+  return { legs, minutes, llegada, meridiano: meridiano.join(' '), salida: hora(0), fare: r.tarifa_total_cop, novedad: r.novedades[0], first: legs[0]?.linea };
+}
 
 function Screen({ icon, title, tag, children }) {
   return (
@@ -27,7 +46,12 @@ function Screen({ icon, title, tag, children }) {
   );
 }
 
+const Loading = () => <span className="screen__muted">Calculando con la API…</span>;
+
 export default function HowItWorks() {
+  const { data } = useApi(() => Promise.all([api.asistente(SAMPLE_TRIP.texto, SAMPLE_TRIP), api.lineas()]));
+  const c = data && toCards(...data);
+
   return (
     <section className="section how" id="como-funciona">
       <div className="container how__grid">
@@ -57,51 +81,93 @@ export default function HowItWorks() {
               </li>
             ))}
           </ol>
+          <p className="how__sample">
+            <Icon name="route" size={16} /> Las tarjetas muestran un viaje real calculado por la API: {SAMPLE_TRIP.label}
+          </p>
         </div>
 
         <div className="swap-stage" aria-hidden="true">
           <CardSwap width={380} height={290} cardDistance={48} verticalDistance={56} delay={4200} pauseOnHover skewAmount={4}>
             <Card customClass="screen">
               <Screen icon="route" title="Ruta sugerida" tag="Más rápida">
-                <div className="screen__big">
-                  37 <small>min</small>
-                </div>
-                <div className="screen__legs">
-                  <span style={{ '--c': '#12a150' }}>Veredal 24′</span>
-                  <span style={{ '--c': '#ff5a3d' }}>TransMiCable 13′</span>
-                </div>
+                {c ? (
+                  <>
+                    <div className="screen__big">
+                      {c.minutes} <small>min</small>
+                    </div>
+                    <div className="screen__legs">
+                      {c.legs.map((l, i) => (
+                        <span key={i} style={{ '--c': SYSTEMS[l.system].color }}>
+                          {modeLabel(l.linea?.modo)} {l.min}′
+                        </span>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <Loading />
+                )}
               </Screen>
             </Card>
             <Card customClass="screen">
-              <Screen icon="pin" title="Paradero cercano">
-                <div className="screen__row">
-                  <b>Estación Manitas</b>
-                  <span>a 350 m · 4 min caminando</span>
-                </div>
-                <div className="screen__row">
-                  <b>Colectivo Jerusalén</b>
-                  <span>pasa en 6 min</span>
-                </div>
+              <Screen icon="pin" title="Primera línea">
+                {c?.first ? (
+                  <>
+                    <div className="screen__row">
+                      <b>{accent(lineRoute(c.first.nombre))}</b>
+                      <span>
+                        {modeLabel(c.first.modo)}
+                        {c.first.frecuencia_min && ` · pasa cada ${c.first.frecuencia_min} min`}
+                      </span>
+                    </div>
+                    <div className="screen__row">
+                      <b>Horario</b>
+                      <span>
+                        {c.first.horario.ini} a {c.first.horario.fin}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <Loading />
+                )}
               </Screen>
             </Card>
             <Card customClass="screen">
-              <Screen icon="alert" title="Alerta en tu ruta" tag="Hace 5 min">
-                <div className="screen__alert">Derrumbe parcial en la vía a Quiba</div>
-                <div className="screen__row">
-                  <b>Nueva ruta</b>
-                  <span>Te desviamos por Sierra Morena, +6 min</span>
-                </div>
+              <Screen icon="alert" title="Novedad en tu ruta">
+                {!c && <Loading />}
+                {c?.novedad && (
+                  <>
+                    <div className="screen__alert">{accent(c.novedad.titulo)}</div>
+                    <div className="screen__row">
+                      <b>+{Math.round(c.novedad.retraso_seg / 60)} min</b>
+                      <span>ya sumados al tiempo total del viaje</span>
+                    </div>
+                  </>
+                )}
+                {c && !c.novedad && (
+                  <div className="screen__row">
+                    <b>Sin novedades</b>
+                    <span>Ninguna alerta activa afecta esta ruta</span>
+                  </div>
+                )}
               </Screen>
             </Card>
             <Card customClass="screen">
               <Screen icon="clock" title="Llegada estimada">
-                <div className="screen__big">
-                  7:42 <small>a. m.</small>
-                </div>
-                <div className="screen__progress">
-                  <i />
-                </div>
-                <span className="screen__muted">Sal en 3 minutos para no esperar</span>
+                {c ? (
+                  <>
+                    <div className="screen__big">
+                      {c.llegada} <small>{c.meridiano}</small>
+                    </div>
+                    <div className="screen__progress">
+                      <i />
+                    </div>
+                    <span className="screen__muted">
+                      Saliendo a las {c.salida} · {money(c.fare)}
+                    </span>
+                  </>
+                ) : (
+                  <Loading />
+                )}
               </Screen>
             </Card>
           </CardSwap>

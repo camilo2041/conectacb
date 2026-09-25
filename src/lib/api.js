@@ -15,23 +15,30 @@ async function request(path, options = {}) {
   return res.json();
 }
 
-let lineasPromise;
+// Varias secciones piden lo mismo (líneas, lugares, alertas): una sola petición por visita.
+const cache = new Map();
+function once(key, load) {
+  if (!cache.has(key)) {
+    cache.set(
+      key,
+      load().catch(err => {
+        cache.delete(key);
+        throw err;
+      })
+    );
+  }
+  return cache.get(key);
+}
 
 export const api = {
   // Sin `hora`/`dia` la API usa la hora actual del servidor (Bogotá).
   asistente: (texto, { hora, dia } = {}) =>
     request('/asistente', { method: 'POST', body: JSON.stringify({ texto, usar_directo: false, hora, dia }) }),
-  capas: () => request('/capas?incluir_zonas=false&incluir_alertas=false'),
-  alertas: () => request('/alertas?activas=true&solo_vigentes=true'),
-  lugares: () => request('/lugares'),
-  // Catálogo id -> línea; se pide una sola vez por visita.
-  lineas() {
-    lineasPromise ??= request('/lineas')
-      .then(r => new Map(r.lineas.map(l => [l.id, l])))
-      .catch(err => {
-        lineasPromise = undefined;
-        throw err;
-      });
-    return lineasPromise;
-  }
+  capas: () => once('capas', () => request('/capas?incluir_zonas=false&incluir_alertas=false')),
+  alertas: () => once('alertas', () => request('/alertas?activas=true&solo_vigentes=true')),
+  lugares: () => once('lugares', () => request('/lugares')),
+  health: () => once('health', () => request('/health')),
+  tarifas: () => once('tarifas', () => request('/tarifas')),
+  // Catálogo id -> línea.
+  lineas: () => once('lineas', () => request('/lineas').then(r => new Map(r.lineas.map(l => [l.id, l]))))
 };

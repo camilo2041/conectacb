@@ -1,8 +1,32 @@
 import SpotlightCard from './reactbits/SpotlightCard';
 import BlurText from './reactbits/BlurText';
 import Icon from './Icon';
+import { api } from '../lib/api';
+import { useApi } from '../lib/useApi';
+import { accent, money } from '../lib/text';
+import { SYSTEMS, modeLabel } from '../data/mapStyle';
+
+const PREGUNTA = { texto: 'de Manitas a Portal Tunal', hora: '07:00', dia: 'L' };
+const SEVERIDAD = { alta: 'crit', media: 'warn', baja: 'ok' };
+
+// La respuesta del asistente trae la tarifa con coma de miles ("$3,200"): se muestra en formato colombiano.
+const formatoPesos = texto => texto.replace(/\$([\d,]+)/g, (_, n) => money(Number(n.replace(/,/g, ''))));
+
+function rango(tarifas) {
+  const min = Math.min(...tarifas);
+  const max = Math.max(...tarifas);
+  return min === max ? money(min) : `${money(min)} a ${money(max)}`;
+}
 
 export default function Benefits() {
+  const chat = useApi(() => api.asistente(PREGUNTA.texto, PREGUNTA));
+  const alertas = useApi(() => api.alertas());
+  const tarifas = useApi(() => api.tarifas());
+
+  const t = tarifas.data;
+  const integradas = t?.lineas.filter(l => l.integrado) ?? [];
+  const informales = t?.lineas.filter(l => !l.integrado) ?? [];
+
   return (
     <section className="section" id="beneficios">
       <div className="container">
@@ -21,8 +45,16 @@ export default function Benefits() {
             <h3>En WhatsApp</h3>
             <p>Sin descargar nada. Escribe como le escribes a un amigo.</p>
             <div className="bubbles">
-              <span className="bubble bubble--me">¿Cómo llego a Portal Tunal?</span>
-              <span className="bubble">Toma TransMiCable en Manitas: llegas en 11 min</span>
+              <span className="bubble bubble--me">¿Cómo llego de Manitas a Portal Tunal?</span>
+              {chat.data ? (
+                <span className="bubble">{formatoPesos(accent(chat.data.respuesta))}</span>
+              ) : (
+                <span className="bubble bubble--typing" aria-label={chat.error ? 'El asistente no está disponible' : 'Escribiendo'}>
+                  <i />
+                  <i />
+                  <i />
+                </span>
+              )}
             </div>
           </SpotlightCard>
 
@@ -33,8 +65,8 @@ export default function Benefits() {
             <h3>Una sola ruta</h3>
             <p>Formal e informal combinados en la misma recomendación.</p>
             <div className="mode-dots">
-              {['#ff5a3d', '#1f63ff', '#12a150'].map(c => (
-                <i key={c} style={{ background: c }} />
+              {Object.values(SYSTEMS).map(s => (
+                <i key={s.color} style={{ background: s.color }} title={s.label} />
               ))}
             </div>
           </SpotlightCard>
@@ -43,11 +75,15 @@ export default function Benefits() {
             <span className="tile__icon tile__icon--warn">
               <Icon name="alert" />
             </span>
-            <h3>Alertas de la comunidad</h3>
-            <p>Bloqueos, derrumbes y demoras reportados en tiempo real.</p>
+            <h3>Novedades en la vía</h3>
+            <p>Derrumbes, obras y trancones que cambian tu tiempo de viaje.</p>
             <div className="alerts">
-              <span className="alert alert--crit">Derrumbe · Vía a Quiba</span>
-              <span className="alert alert--ok">TransMiCable operando normal</span>
+              {alertas.data?.length === 0 && <span className="alert alert--ok">Sin novedades activas</span>}
+              {alertas.data?.slice(0, 2).map(a => (
+                <span key={a.id} className={`alert alert--${SEVERIDAD[a.severidad] ?? 'warn'}`}>
+                  {accent(a.titulo)}
+                </span>
+              ))}
             </div>
           </SpotlightCard>
 
@@ -57,10 +93,19 @@ export default function Benefits() {
             </span>
             <h3>Tarifa antes de salir</h3>
             <p>Sabes cuánto pagas en cada tramo, sin sorpresas.</p>
-            <div className="fare">
-              <span>Total del viaje</span>
-              <b>$7.200</b>
-            </div>
+            {t && (
+              <div className="fares">
+                <div className="fare">
+                  <span>{[...new Set(integradas.map(l => modeLabel(l.modo)))].join(' y ')}</span>
+                  <b>{rango(integradas.map(l => l.tarifa))}</b>
+                </div>
+                <div className="fare">
+                  <span>Informales</span>
+                  <b>{rango(informales.map(l => l.tarifa))}</b>
+                </div>
+                <small className="fare__note">Integrados: el segundo abordaje en {t.ventana_integracion_min} min no se cobra.</small>
+              </div>
+            )}
           </SpotlightCard>
         </div>
       </div>
