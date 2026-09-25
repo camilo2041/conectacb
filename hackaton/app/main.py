@@ -94,7 +94,8 @@ def _paso_linea(tramo) -> str:
     if lin is None:
         return tramo.linea
     if not tramo.codigo:
-        return lin.nombre
+        # Las informales no son datos oficiales: el usuario debe saberlo.
+        return f"{lin.nombre} (ruta informal)" if lin.tipo == "informal" else lin.nombre
     texto = f"toma {_NOMBRE_MODO.get(lin.modo, 'la ruta')} {tramo.codigo}"
     # El GTFS nombra los alimentadores "Barrio || Portal": se muestra "Barrio - Portal".
     destino = " - ".join(p.strip() for p in (lin.propiedades.get("destino") or "").split("||") if p.strip())
@@ -138,10 +139,36 @@ def _alerta_feature(a: Alerta) -> dict:
     }
 
 
+def _pesos(valor: float) -> str:
+    return "$" + f"{int(valor):,}".replace(",", ".")  # formato colombiano: $3.550
+
+
 def _resumir_ruta(resp: RutaResponse) -> str:
     if not resp.tramos:
         return "No encontre una ruta disponible con esas opciones y ese horario."
     minutos = max(1, round(resp.duracion_seg / 60))
+    if all(t.modo == "acceso" for t in resp.tramos):
+        return f"Queda cerca: camina unos {round(resp.distancia_m, -1):.0f} m (unos {minutos} min)."
+    texto = f"Ruta de {minutos} min, tarifa {_pesos(resp.tarifa_total_cop)}."
+    secuencia = _secuencia(resp)
+    if secuencia:
+        texto += f" {secuencia[0].upper()}{secuencia[1:]}."
+    if resp.transbordos:
+        texto += f" {resp.transbordos} transbordo(s)."
+    if resp.novedades:
+        avisos = "; ".join(f"{n.titulo} (+{round(n.retraso_seg / 60)} min)" for n in resp.novedades)
+        texto += f" Novedades: {avisos}."
+    # La mas rapida puede incluir informales que cobran aparte: si hay una opcion mas barata, se ofrece.
+    barata = min((a for a in resp.alternativas if a.tramos), key=lambda a: a.tarifa_total_cop, default=None)
+    if barata is not None and barata.tarifa_total_cop < resp.tarifa_total_cop:
+        mins = max(1, round(barata.duracion_seg / 60))
+        pasos = _secuencia(barata)
+        texto += f" Opcion mas economica ({mins} min, {_pesos(barata.tarifa_total_cop)}): {pasos}."
+    return texto
+
+
+def _secuencia(resp) -> str:
+    """Pasos de una ruta en texto: "camina, luego toma el SITP 6-3 ..."."""
     pasos: list[tuple[str, str]] = []
     for tramo in resp.tramos:
         if tramo.modo in {"cable", "formal", "informal"} and tramo.linea:
@@ -156,17 +183,22 @@ def _resumir_ruta(resp: RutaResponse) -> str:
         if compacto and paso[0] == "accion" and compacto[-1] == paso:
             continue
         compacto.append(paso)
-    secuencia = ", luego ".join(p[1] for p in compacto)
-    tarifa = f"{int(resp.tarifa_total_cop):,}".replace(",", ".")  # formato colombiano: $3.550
-    texto = f"Ruta de {minutos} min, tarifa ${tarifa}."
-    if secuencia:
-        texto += f" {secuencia[0].upper()}{secuencia[1:]}."
-    if resp.transbordos:
-        texto += f" {resp.transbordos} transbordo(s)."
-    if resp.novedades:
-        avisos = "; ".join(f"{n.titulo} (+{round(n.retraso_seg / 60)} min)" for n in resp.novedades)
-        texto += f" Novedades: {avisos}."
-    return texto
+    return ", luego ".join(p[1] for p in compacto)
+
+
+# Palabras al comienzo de la pregunta que no son parte del lugar ("voy se Sierra Morena a...").
+_RELLENO = {
+    "hola", "buenas", "buenos", "dias", "días", "tardes", "noches", "por", "favor", "voy", "vamos", "ir",
+    "quiero", "necesito", "como", "cómo", "llego", "llegar", "puedo", "se", "sé", "salgo", "estoy", "en",
+    "me", "muevo", "viajo", "viajar", "ruta", "de", "desde", "del", "d", "el", "la", "los", "las", "y",
+}
+
+
+def _sin_relleno(texto: str) -> str:
+    palabras = texto.replace(",", " ").split()
+    while palabras and palabras[0].lower() in _RELLENO:
+        palabras.pop(0)
+    return " ".join(palabras)
 
 
 def _parsear_texto(texto: str) -> tuple[str | None, str | None]:
@@ -181,6 +213,15 @@ def _parsear_texto(texto: str) -> tuple[str | None, str | None]:
     )
     if m:
         return m.group(1).strip(), m.group(2).strip()
+    # Destino primero: "como llego a Manitas desde Lucero".
+    m_inv = re.search(rf"\b{destino}\s+(.+?)\s+desde\s+(.+?)\s*[?.!]*$", t, re.IGNORECASE)
+    if m_inv:
+        return m_inv.group(2).strip(), m_inv.group(1).strip()
+    # Sin "de" (o mal escrito: "voy se Sierra Morena a Manitas"): lo que va antes del conector,
+    # sin las palabras de relleno del comienzo.
+    m_sin = re.search(rf"^(.+?)\s+{destino}\s+(.+?)\s*[?.!]*$", t, re.IGNORECASE)
+    if m_sin and _sin_relleno(m_sin.group(1)):
+        return _sin_relleno(m_sin.group(1)), m_sin.group(2).strip()
     m2 = re.search(rf"\b{destino}\s+(.+?)\s*[?.!]*$", t, re.IGNORECASE)
     if m2:
         return None, m2.group(1).strip()

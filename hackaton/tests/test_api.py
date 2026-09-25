@@ -324,13 +324,34 @@ def test_asistente_lenguaje_natural():
         "Voy de Sierra Morena al Portal Tunal",
         "desde Sierra Morena hasta el Portal Tunal",
         "como llego del barrio Sierra Morena a la estacion Portal Tunal?",
+        "voy se sierra morena a portal tunal",  # error de tipeo real en el webchat
+        "Sierra Morena a Portal Tunal",
+        "hola, como llego al Portal Tunal desde Sierra Morena?",
     ],
 )
 def test_asistente_entiende_articulos(texto):
     from app.main import _parsear_texto
 
     origen, destino = _parsear_texto(texto)
-    assert "Sierra Morena" in origen and "Portal Tunal" in destino
+    assert origen.lower().endswith("sierra morena") and "portal tunal" in destino.lower()
+
+
+@pytest.mark.parametrize("texto", ["quiero ir a Manitas", "como llego a Manitas?"])
+def test_asistente_sin_origen_no_lo_inventa(texto):
+    from app.main import _parsear_texto
+
+    assert _parsear_texto(texto) == (None, "Manitas")
+
+
+def test_asistente_ofrece_la_opcion_mas_economica():
+    body = {"texto": "de Sierra Morena a Manitas", "hora": "12:00", "dia": "L"}
+    data = client.post("/asistente", json=body).json()
+    principal = data["ruta"]["tarifa_total_cop"]
+    baratas = [a for a in data["ruta"]["alternativas"] if a["tarifa_total_cop"] < principal]
+    if baratas:
+        assert "Opcion mas economica" in data["respuesta"]
+    if data["ruta"]["informales_usadas"]:
+        assert "(ruta informal)" in data["respuesta"]
 
 
 def test_asistente_responde_con_codigo_y_paraderos():
