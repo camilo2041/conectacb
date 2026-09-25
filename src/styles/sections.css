@@ -637,6 +637,23 @@
   flex: none;
 }
 
+.answer__note {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 0 14px;
+  padding: 10px 14px;
+  border-radius: 14px;
+  background: rgba(31, 99, 255, 0.08);
+  color: #1d4ed8;
+  font-size: 0.86rem;
+  font-weight: 600;
+}
+
+.answer__note svg {
+  flex: none;
+}
+
 .answer__map {
   display: inline-flex;
   align-items: center;

@@ -3,9 +3,9 @@ import SplitText from './reactbits/SplitText';
 import Icon from './Icon';
 import { api } from '../lib/api';
 import { routeStore } from '../lib/routeStore';
-import { accent } from '../lib/text';
+import { accent, lineRoute } from '../lib/text';
 import { eventIconSvg } from '../data/eventIcons';
-import { SYSTEMS, WALK_COLOR, eventType, inCB, systemOf, toLatLng } from '../data/mapStyle';
+import { SYSTEMS, WALK_COLOR, eventType, inCB, modeLabel, systemOf, toLatLng } from '../data/mapStyle';
 import { createGoogleEngine, createLeafletEngine } from '../lib/mapEngines';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
@@ -24,9 +24,25 @@ function normalize(capas, lugares, alertas) {
     .filter(a => a.geometria)
     .map(a => {
       const coords = a.geometria.type === 'Point' ? [a.geometria.coordinates] : a.geometria.coordinates.flat(a.geometria.type === 'Polygon' ? 1 : 0);
-      return { ...a, pos: toLatLng(coords[Math.floor(coords.length / 2)]) };
+      // Las líneas a las que el ruteo aplica la alerta (declaradas + cercanas); las declaradas si la API es anterior.
+      const afectadas = a.lineas_afectadas_efectivas ?? a.lineas_afectadas;
+      return { ...a, afectadas, pos: toLatLng(coords[Math.floor(coords.length / 2)]) };
     });
   return { lines, pylons, places, events };
+}
+
+// Descripción de cada sistema según las líneas que realmente envía la API.
+function systemDescs(lines) {
+  const descs = {};
+  for (const system of Object.keys(SYSTEMS)) {
+    const own = lines.filter(l => l.system === system);
+    if (!own.length) continue;
+    descs[system] =
+      own.length <= 2
+        ? own.map(l => accent(system === 'formal' ? l.nombre : lineRoute(l.nombre))).join(' · ')
+        : [...new Set(own.map(l => modeLabel(l.modo)))].join(' · ');
+  }
+  return descs;
 }
 
 const stopHtml = p =>
@@ -71,17 +87,19 @@ function buildLayers(engine, data, onSelect) {
   // Resalta bajo cada línea afectada el color de la novedad que la afecta.
   data.events.forEach(ev => {
     (events[ev.tipo] ??= []).push(
-      ...ev.lineas_afectadas
+      ...ev.afectadas
         .map(id => byId.get(id))
         .filter(Boolean)
-        .map(l => engine.polyline({ path: l.path, color: eventType(ev.tipo).color, weight: 16, opacity: 0.35, glow: true, z: 0 }))
+        .map(l => engine.polyline({ path: l.path, color: eventType(ev.tipo).color, weight: 16, opacity: 0.35, glow: true, z: 0, tag: l.id }))
     );
   });
 
   data.lines.forEach(l => {
     const s = SYSTEMS[l.system];
     const dash = s.style === 'solid' ? null : s.style;
-    systems[l.system].push(engine.polyline({ path: l.path, color: s.color, weight: l.system === 'cable' ? 6 : 5, dash, flow: Boolean(dash), casing: true, z: 2 }));
+    systems[l.system].push(
+      engine.polyline({ path: l.path, color: s.color, weight: l.system === 'cable' ? 6 : 5, dash, flow: Boolean(dash), casing: true, z: 2, tag: l.id })
+    );
   });
 
   data.pylons.forEach(pos => systems.cable.push(engine.marker({ pos, html: '<div class="pin pylon"></div>', title: 'Pilona del TransMiCable', z: 1 })));
@@ -290,6 +308,7 @@ export default function LiveMapSection() {
   };
 
   const lineCounts = data?.lines.reduce((acc, l) => ({ ...acc, [l.system]: (acc[l.system] ?? 0) + 1 }), {}) ?? {};
+  const descs = data ? systemDescs(data.lines) : {};
   const typeCounts = data?.events.reduce((acc, e) => ({ ...acc, [e.tipo]: (acc[e.tipo] ?? 0) + 1 }), {}) ?? {};
   const feed = data ? [...data.events].sort((a, b) => Date.parse(b.actualizado_en) - Date.parse(a.actualizado_en)) : [];
 
@@ -362,7 +381,7 @@ export default function LiveMapSection() {
                         {s.label}
                         {data && <span className="legend-row__count">{lineCounts[k] ?? 0}</span>}
                       </b>
-                      <small>{s.desc}</small>
+                      <small>{descs[k] ?? s.desc}</small>
                     </span>
                     <span className="legend-row__check" aria-hidden="true" />
                   </button>
@@ -397,7 +416,7 @@ export default function LiveMapSection() {
                   </button>
                 );
               })}
-              {data && data.events.some(e => e.lineas_afectadas.length) && (
+              {data && data.events.some(e => e.afectadas.length) && (
                 <p className="legend__hint">
                   <i className="mini-swatch mini-swatch--glow" style={{ '--c': '#f59e0b' }} /> El resplandor marca las líneas afectadas.
                 </p>

@@ -1,8 +1,9 @@
 // Convenciones visuales del mapa y del planeador, según los tipos que devuelve la API.
 
+// `desc` es el texto mientras cargan los datos; luego la leyenda lo arma con las líneas que envía la API.
 export const SYSTEMS = {
-  cable: { label: 'TransMiCable', color: '#ff5a3d', style: 'solid', desc: 'Cable aéreo Línea 1 · 4 estaciones' },
-  formal: { label: 'TransMilenio y SITP', color: '#1f63ff', style: 'dash', desc: 'Troncales, zonales y alimentadores' },
+  cable: { label: 'TransMiCable', color: '#ff5a3d', style: 'solid', desc: 'Cable aéreo de Ciudad Bolívar' },
+  formal: { label: 'TransMilenio y SITP', color: '#1f63ff', style: 'dash', desc: 'Buses del sistema integrado' },
   informal: { label: 'Informales', color: '#12a150', style: 'dot', desc: 'Colectivos, busetas, camperos y mototaxis' }
 };
 
@@ -35,7 +36,8 @@ export const EVENT_TYPES = {
 export const eventType = tipo => EVENT_TYPES[tipo] ?? EVENT_TYPES.otro;
 
 // Recuadro de Ciudad Bolívar: el mapa se encuadra aquí aunque la API traiga líneas de otras localidades.
-export const CB_BOUNDS = { south: 4.49, north: 4.6, west: -74.21, east: -74.12 };
+// Incluye la zona rural (Mochuelo, Pasquilla).
+export const CB_BOUNDS = { south: 4.44, north: 4.6, west: -74.21, east: -74.12 };
 
 export const inCB = ({ lat, lng }) =>
   lat >= CB_BOUNDS.south && lat <= CB_BOUNDS.north && lng >= CB_BOUNDS.west && lng <= CB_BOUNDS.east;

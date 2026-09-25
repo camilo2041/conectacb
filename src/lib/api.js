@@ -18,7 +18,9 @@ async function request(path, options = {}) {
 let lineasPromise;
 
 export const api = {
-  asistente: texto => request('/asistente', { method: 'POST', body: JSON.stringify({ texto, usar_directo: false }) }),
+  // Sin `hora`/`dia` la API usa la hora actual del servidor (Bogotá).
+  asistente: (texto, { hora, dia } = {}) =>
+    request('/asistente', { method: 'POST', body: JSON.stringify({ texto, usar_directo: false, hora, dia }) }),
   capas: () => request('/capas?incluir_zonas=false&incluir_alertas=false'),
   alertas: () => request('/alertas?activas=true&solo_vigentes=true'),
   lugares: () => request('/lugares'),

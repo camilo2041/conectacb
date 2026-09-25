@@ -5,7 +5,7 @@ import ShinyText from './reactbits/ShinyText';
 import Icon from './Icon';
 import { api } from '../lib/api';
 import { routeStore } from '../lib/routeStore';
-import { accent, money } from '../lib/text';
+import { accent, lineRoute, money } from '../lib/text';
 import { SYSTEMS, WALK_COLOR, modeLabel } from '../data/mapStyle';
 
 const EXAMPLES = [
@@ -28,10 +28,6 @@ function toQuestion(text) {
   if (/\b(de|desde)\s/i.test(t) || /^(c[oó]mo|quiero|necesito|voy)\b/i.test(t)) return t;
   return `de ${t}`;
 }
-
-// "TransMiCable Tunal (Portal Tunal - Mirador del Paraiso)" -> "Portal Tunal - Mirador del Paraiso"
-const lineRoute = nombre =>
-  nombre.match(/\(([^)]+)\)/)?.[1] ?? nombre.replace(/^(troncal\s+)?(transmicable|transmilenio|colectivo|buseta|campero|mototaxi)\s+/i, '');
 
 function toView(resp, lineas) {
   const r = resp.ruta;
@@ -70,8 +66,18 @@ function toView(resp, lineas) {
   };
 }
 
-function arrivalTime(now, minutes) {
-  return new Date(now + minutes * 60000).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
+function arrivalTime(departure, minutes) {
+  return new Date(departure + minutes * 60000).toLocaleTimeString('es-CO', { hour: 'numeric', minute: '2-digit' });
+}
+
+// Próxima salida a las 7:00 a. m. (hoy si aún no son las 7, si no mañana), para cuando no hay servicio ahora.
+function nextMorning() {
+  const now = new Date();
+  const d = new Date(now);
+  if (now.getHours() >= 7) d.setDate(d.getDate() + 1);
+  d.setHours(7, 0, 0, 0);
+  const cuando = d.getDate() === now.getDate() ? 'hoy' : 'mañana';
+  return { hora: '07:00', dia: 'DLMXJVS'[d.getDay()], departure: d.getTime(), label: `${cuando} a las 7:00 a. m.` };
 }
 
 export default function Planner() {
@@ -79,19 +85,29 @@ export default function Planner() {
   const [status, setStatus] = useState('thinking');
   const [result, setResult] = useState(null);
   const [message, setMessage] = useState('');
-  // La hora se toma en el navegador; el HTML pre-renderado no puede saberla.
-  const [now, setNow] = useState(null);
   const lastRequest = useRef(0);
 
   const run = async (text = query) => {
     const id = ++lastRequest.current;
+    const question = toQuestion(text);
     setStatus('thinking');
     try {
-      const [resp, lineas] = await Promise.all([api.asistente(toQuestion(text)), api.lineas()]);
+      let [resp, lineas] = await Promise.all([api.asistente(question), api.lineas()]);
+      let departure = Date.now();
+      let later = null;
+      // Encontró los lugares pero no hay servicio a esta hora (p. ej. de noche): se muestra la próxima mañana.
+      if (!resp.ruta?.tramos?.length && resp.origen && resp.destino) {
+        const next = nextMorning();
+        const again = await api.asistente(question, next);
+        if (again.ruta?.tramos?.length) {
+          resp = again;
+          departure = next.departure;
+          later = next.label;
+        }
+      }
       if (id !== lastRequest.current) return;
       const view = toView(resp, lineas);
-      setNow(Date.now());
-      setResult(view);
+      setResult(view && { ...view, departure, later });
       setMessage(view ? '' : accent(resp.respuesta));
       setStatus(view ? 'done' : 'empty');
     } catch (err) {
@@ -206,6 +222,11 @@ export default function Planner() {
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.45, ease: [0.2, 0.8, 0.2, 1] }}
                 >
+                  {result.later && (
+                    <p className="answer__note">
+                      <Icon name="clock" size={16} /> A esta hora no hay servicio en esta ruta. Así sería saliendo {result.later}
+                    </p>
+                  )}
                   <div className="answer__head">
                     <div>
                       <span className="answer__route">
@@ -216,11 +237,9 @@ export default function Planner() {
                       </div>
                     </div>
                     <div className="answer__meta">
-                      {now && (
-                        <span>
-                          <Icon name="clock" size={16} /> Llegas {arrivalTime(now, result.minutes)}
-                        </span>
-                      )}
+                      <span>
+                        <Icon name="clock" size={16} /> Llegas {arrivalTime(result.departure, result.minutes)}
+                      </span>
                       <span>
                         <Icon name="coin" size={16} /> {money(result.fare)}
                       </span>

@@ -223,6 +223,89 @@ def test_ruta_mapa_y_capas():
     assert {"zona", "linea", "alerta", "pilona"}.issubset(tipos)
 
 
+MIRADOR = (4.550082, -74.158767)
+JUAN_PABLO_II = (4.555691, -74.147484)
+
+
+def _dist_m(coord: dict, punto: tuple[float, float]) -> float:
+    from app import geo
+
+    return geo.haversine_m(coord["lat"], coord["lon"], punto[0], punto[1])
+
+
+def test_tramo_en_sentido_contrario_invierte_geometria():
+    from app.informal import LineaInformal
+
+    geometria = [(0.0, 0.0), (0.001, 0.0), (0.002, 0.0)]
+    lin = LineaInformal(
+        id="T", nombre="T", modo="colectivo", tarifa=0, tiempo_espera_seg=0, frecuencia_min=None,
+        horario={}, velocidad_kmh=20, geometria=geometria, paradas=list(geometria), indices_paradas=[0, 1, 2],
+    )
+    ida, dist_ida, dur_ida = lin.tramo(0, 2)
+    vuelta, dist_vuelta, dur_vuelta = lin.tramo(2, 0)
+    assert ida == geometria
+    assert vuelta == list(reversed(geometria))
+    assert (dist_vuelta, dur_vuelta) == (dist_ida, dur_ida)
+
+
+def test_paradas_del_cable_caen_en_sus_estaciones():
+    from app import geo
+    from app.informal import cargar_formales
+
+    cable = next(l for l in cargar_formales().lineas if l.id == "TMC-01")
+    for parada, idx in zip(cable.paradas, cable.indices_paradas):
+        vertice = cable.geometria[idx]
+        assert geo.haversine_m(parada[1], parada[0], vertice[1], vertice[0]) < 1.0
+
+
+def test_tramo_de_cable_va_en_el_sentido_del_viaje():
+    body = {
+        "origen": {"lat": 4.575, "lon": -74.180},  # Cazuca: toma el cable en Mirador del Paraiso
+        "destino": {"lat": JUAN_PABLO_II[0], "lon": JUAN_PABLO_II[1]},
+        "usar_directo": False,
+        "hora": "12:00",
+    }
+    data = client.post("/ruta", json=body).json()
+    cable = next(t for t in data["tramos"] if t["modo"] == "cable")
+    assert _dist_m(cable["desde"], MIRADOR) < 5
+    assert _dist_m(cable["hasta"], JUAN_PABLO_II) < 5
+    inicio, fin = cable["geometria"]["coordinates"][0], cable["geometria"]["coordinates"][-1]
+    assert inicio == [cable["desde"]["lon"], cable["desde"]["lat"]]
+    assert fin == [cable["hasta"]["lon"], cable["hasta"]["lat"]]
+
+
+@pytest.mark.parametrize(
+    "origen, destino",
+    [
+        ((4.575, -74.180), JUAN_PABLO_II),                 # Cazuca -> Juan Pablo II (cable de bajada)
+        (JUAN_PABLO_II, (4.575, -74.180)),                 # y de regreso (cable de subida)
+        ((4.513704, -74.164648), (4.569675, -74.139249)),  # Quiba -> Portal Tunal
+        (MIRADOR, (4.5987, -74.0755)),                     # Mirador -> Las Aguas (cable + troncal)
+    ],
+)
+def test_tramos_encadenados(origen, destino):
+    body = {
+        "origen": {"lat": origen[0], "lon": origen[1]},
+        "destino": {"lat": destino[0], "lon": destino[1]},
+        "usar_directo": False,
+        "hora": "12:00",
+    }
+    tramos = client.post("/ruta", json=body).json()["tramos"]
+    assert tramos, "debe haber ruta"
+    for anterior, siguiente in zip(tramos, tramos[1:]):
+        salto = _dist_m(anterior["hasta"], (siguiente["desde"]["lat"], siguiente["desde"]["lon"]))
+        assert salto < 1.0, f"{anterior['modo']} {anterior['linea']} -> {siguiente['modo']} {siguiente['linea']}: salto de {salto:.0f} m"
+
+
+def test_alertas_informan_lineas_efectivas():
+    alertas = {a["id"]: a for a in client.get("/alertas").json()}
+    # Declaradas explicitamente.
+    assert {"CB-05", "CB-09"}.issubset(alertas["AL-001"]["lineas_afectadas_efectivas"])
+    # Sin lineas declaradas, pero a menos de 150 m de la troncal: el ruteo se la aplica.
+    assert alertas["AL-003"]["lineas_afectadas"] == []
+    assert "TMC-02" in alertas["AL-003"]["lineas_afectadas_efectivas"]
+
+
 def test_alertas_crud(monkeypatch, tmp_path):
     from app import alertas as mod
 

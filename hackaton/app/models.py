@@ -148,6 +148,13 @@ class Alerta(AlertaBase):
     id: str
     creado_en: str
     actualizado_en: str
+    lineas_afectadas_efectivas: list[str] = Field(
+        default_factory=list,
+        description=(
+            "Lineas a las que el ruteo aplica la alerta: las declaradas en `lineas_afectadas` "
+            "mas las que pasan a menos de `RUTAS_ALERTA_RADIO_AFECTACION_M` de su geometria."
+        ),
+    )
 
 
 # --- Lugares / geocoding ---

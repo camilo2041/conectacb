@@ -64,12 +64,14 @@ class LineaInformal:
         return mejor_idx, mejor_d, mejor_p
 
     def tramo(self, i: int, j: int) -> tuple[list[Punto], float, float]:
-        """Geometria, distancia y duracion entre dos paradas (i <= j)."""
+        """Geometria, distancia y duracion entre dos paradas, en el sentido del viaje (de i hacia j)."""
+        a, b = (i, j) if i <= j else (j, i)
+        ga = self.indices_paradas[a] if self.indices_paradas else a
+        gb = self.indices_paradas[b] if self.indices_paradas else b
+        geom = self.geometria[ga : gb + 1]
         if i > j:
-            i, j = j, i
-        gi = self.indices_paradas[i] if self.indices_paradas else i
-        gj = self.indices_paradas[j] if self.indices_paradas else j
-        geom = self.geometria[gi : gj + 1]
+            # Se recorre la linea al reves de como esta dibujada.
+            geom = geom[::-1]
         dist = geo.longitud_linea_m(geom)
         return geom, dist, self._dur_seg(dist)
 
@@ -95,11 +97,13 @@ def _paradas_desde(props: dict[str, Any], geometria: list[Punto]) -> tuple[list[
     explicitas = props.get("paradas")
     if not explicitas:
         return list(geometria), list(range(len(geometria)))
-    # Ordena las paradas explicitas por su vertice mas cercano en la linea.
+    # Ordena las paradas explicitas por su vertice mas cercano en la linea. Se usa el vertice
+    # mas cercano (no el inicio del segmento mas cercano): las estaciones del cable son vertices
+    # y, con el inicio del segmento, cada una quedaba asignada a la pilona anterior.
     pares: list[tuple[int, Punto]] = []
     for par in explicitas:
         p = (par[0], par[1])
-        _, _, idx = geo.punto_mas_cercano_en_linea(p, geometria)
+        idx = min(range(len(geometria)), key=lambda k: geo.haversine_m(p[1], p[0], geometria[k][1], geometria[k][0]))
         pares.append((idx, p))
     pares.sort(key=lambda t: t[0])
     return [p for _, p in pares], [idx for idx, _ in pares]

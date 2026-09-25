@@ -122,7 +122,7 @@ Cada **tramo**:
 | --- | --- |
 | `modo` | `acceso` (caminar), `informal`, `formal` (TransMilenio/SITP), `cable` (TransMiCable) o `directo` (carro). |
 | `linea` | Id de la línea (`CB-07`, `TMC-01`…); `null` en caminatas. Nombre con `GET /lineas/{id}`. |
-| `desde` / `hasta` | `{lat, lon}` donde empieza y termina el tramo. Ver [Problemas conocidos](#problemas-conocidos). |
+| `desde` / `hasta` | `{lat, lon}` donde empieza y termina el tramo, en el sentido del viaje. Cada tramo empieza donde terminó el anterior. |
 | `duracion_seg` | Tiempo del recorrido (sin la espera). |
 | `distancia_m` | Distancia del tramo. |
 | `tarifa_cop` | Lo que se paga al abordar ese tramo. |
@@ -134,15 +134,15 @@ Respuesta real de Cazucá a Juan Pablo II a las 07:30 (geometrías recortadas):
 
 ```json
 {
-  "distancia_m": 6718.5,
-  "duracion_seg": 1655.8,
+  "distancia_m": 6710.8,
+  "duracion_seg": 1654.1,
   "tarifa_total_cop": 7700.0,
   "transbordos": 1,
   "tramos": [
     {"modo": "acceso",   "linea": null,     "distancia_m": 507.0,  "duracion_seg": 380.3, "tarifa_cop": 0.0},
     {"modo": "informal", "linea": "CB-07",  "distancia_m": 4609.4, "duracion_seg": 638.2, "tarifa_cop": 4500.0},
     {"modo": "acceso",   "linea": null,     "distancia_m": 0.0,    "duracion_seg": 0.0,   "tarifa_cop": 0.0},
-    {"modo": "cable",    "linea": "TMC-01", "distancia_m": 1602.1, "duracion_seg": 367.4, "tarifa_cop": 3200.0},
+    {"modo": "cable",    "linea": "TMC-01", "distancia_m": 1594.4, "duracion_seg": 365.6, "tarifa_cop": 3200.0},
     {"modo": "acceso",   "linea": null,     "distancia_m": 0.0,    "duracion_seg": 0.0,   "tarifa_cop": 0.0}
   ],
   "zonas": [{"nombre": "Usme/Ciudad Bolivar", "letra": "H", "color": "Naranja"}],
@@ -258,8 +258,10 @@ Con ese ejemplo, cada $1.000 de tarifa pesa como 500 s de viaje y cada transbord
 
 ## Problemas conocidos
 
-- **Tramos en sentido contrario.** Cuando la ruta recorre una línea en el sentido opuesto al que está dibujada, `desde`, `hasta` y la `geometria` del tramo salen invertidos. Ejemplo: de Cazucá a Juan Pablo II, el tramo `TMC-01` va de Mirador del Paraíso a Juan Pablo II, pero la API lo devuelve de Juan Pablo II a Mirador. La duración, la distancia y la tarifa sí son correctas. Si generas instrucciones ("sube en…, baja en…"), toma la parada de subida del `hasta` del tramo anterior y la de bajada del `desde` del tramo siguiente, que siempre están en el orden del viaje.
+- **Sin servicio de noche.** Las rutas informales de Ciudad Bolívar operan de 04:30 a 22:00; el TransMiCable hasta las 23:00. Fuera de ese horario casi todos los viajes vuelven sin tramos. La web de ConectaCB, en ese caso, repite la consulta para las 7:00 a. m. y lo avisa; conviene hacer lo mismo en otros canales.
 - **`hora` no se valida.** Un valor como `"25:99"` no da error; valida el formato `HH:MM` antes de enviarlo.
 - **Nombres sin tildes.** Los lugares y líneas vienen sin tildes ("Mirador del Paraiso", "Cazuca").
 - **Formato de la tarifa en `respuesta`.** El texto del asistente usa coma de miles (`$7,700`); para mostrar precios usa `tarifa_total_cop` y dale formato colombiano (`$7.700`).
-- **Datos de ejemplo.** El trazado del TransMiCable y sus estaciones son reales; las rutas informales, la troncal y las alertas son aproximadas o de prueba (ver `README.md`).
+- **Datos de ejemplo.** El trazado del TransMiCable, sus 4 estaciones y sus 23 pilonas son reales. La troncal `TMC-02`, las rutas `INF-001` a `INF-005` (Suba, Usme, Kennedy, Bosa, Calle 80) y las alertas son de prueba. Las rutas `CB-*` tienen extremos reales pero trazados de 3 a 5 puntos (líneas rectas de hasta 2,3 km).
+- **SITP.** La API no tiene rutas del SITP: solo las 9 zonas tarifarias (`GET /zonas`). Los tramos `formal` hoy solo pueden ser TransMiCable o la troncal de TransMilenio.
+- **Novedades lejos de sus líneas.** Una alerta afecta las líneas que declara en `lineas_afectadas` y además las que pasan a menos de 150 m de su punto. El campo `lineas_afectadas_efectivas` de `GET /alertas` trae la lista completa que usa el ruteo. En los datos actuales, el derrumbe `AL-001` está a 2,1 km de las líneas que afecta y la obra `AL-002` a 860 m.

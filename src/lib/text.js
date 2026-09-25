@@ -16,4 +16,8 @@ const ACCENTS = [
 
 export const accent = text => ACCENTS.reduce((t, [re, fix]) => t.replace(re, fix), text ?? '');
 
+// "TransMiCable Tunal (Portal Tunal - Mirador del Paraiso)" -> "Portal Tunal - Mirador del Paraiso"
+export const lineRoute = nombre =>
+  nombre.match(/\(([^)]+)\)/)?.[1] ?? nombre.replace(/^(troncal\s+)?(transmicable|transmilenio|colectivo|buseta|campero|mototaxi)\s+/i, '');
+
 export const money = n => `$${String(Math.round(n)).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`;

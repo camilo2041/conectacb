@@ -21,7 +21,7 @@ export async function createLeafletEngine(el, { isCancelled } = {}) {
   const toggle = layer => ({ show: on => (on ? layer.addTo(map) : layer.remove()) });
 
   return {
-    polyline({ path, color, weight = 5, opacity = 0.95, dash = null, flow = false, casing = false, glow = false }) {
+    polyline({ path, color, weight = 5, opacity = 0.95, dash = null, flow = false, casing = false, glow = false, tag }) {
       const group = L.layerGroup();
       const shape = { lineCap: 'round', lineJoin: 'round', interactive: false };
       if (casing) L.polyline(path, { ...shape, color: '#fff', weight: weight + 5, opacity: 0.9 }).addTo(group);
@@ -32,7 +32,7 @@ export async function createLeafletEngine(el, { isCancelled } = {}) {
         weight,
         opacity,
         dashArray: DASH[dash] ?? null,
-        className: [flowClass, glow ? 'lf-glow' : ''].join(' ').trim()
+        className: [flowClass, glow ? 'lf-glow' : '', tag ? `ln-${tag}` : ''].join(' ').trim()
       }).addTo(group);
       group.addTo(map);
       return toggle(group);

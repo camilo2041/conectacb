@@ -92,6 +92,13 @@ def _zona_geometria(zona) -> dict:
     return {"type": "MultiPolygon", "coordinates": zona.multipoligono}
 
 
+def _alerta_publica(a: Alerta) -> dict:
+    """Alerta con las lineas a las que el ruteo realmente la aplica (misma regla que routing)."""
+    radio = settings.alerta_radio_afectacion_m
+    efectivas = [lin.id for lin in _todas_lineas() if a.afecta_linea(lin, radio)]
+    return {**a.a_dict(), "lineas_afectadas_efectivas": efectivas}
+
+
 def _alerta_feature(a: Alerta) -> dict:
     return {
         "type": "Feature",
@@ -104,6 +111,7 @@ def _alerta_feature(a: Alerta) -> dict:
             "severidad": a.severidad,
             "retraso_seg": a.retraso_seg,
             "lineas_afectadas": a.lineas_afectadas,
+            "lineas_afectadas_efectivas": _alerta_publica(a)["lineas_afectadas_efectivas"],
             "color": {"alta": "#DC2626", "media": "#F59E0B", "baja": "#FACC15"}.get(
                 a.severidad, "#F59E0B"
             ),
@@ -359,7 +367,7 @@ def listar_alertas(
     solo_vigentes: bool = Query(False),
 ) -> list[dict]:
     return [
-        a.a_dict()
+        _alerta_publica(a)
         for a in almacen_alertas().listar(activas=activas, tipo=tipo, solo_vigentes=solo_vigentes)
     ]
 
@@ -370,7 +378,7 @@ def alertas_cerca(
     lon: float = Query(..., ge=-180, le=180),
     radio_m: float = Query(1500.0, ge=0, le=50000),
 ) -> list[dict]:
-    return [a.a_dict() for a in almacen_alertas().cerca(lon, lat, radio_m)]
+    return [_alerta_publica(a) for a in almacen_alertas().cerca(lon, lat, radio_m)]
 
 
 @app.get("/alertas/{id_alerta}", response_model=AlertaModel, tags=["alertas"])
@@ -378,12 +386,12 @@ def obtener_alerta(id_alerta: str) -> dict:
     alerta = almacen_alertas().obtener(id_alerta)
     if alerta is None:
         raise HTTPException(status_code=404, detail=f"Alerta {id_alerta} no encontrada")
-    return alerta.a_dict()
+    return _alerta_publica(alerta)
 
 
 @app.post("/alertas", response_model=AlertaModel, status_code=201, tags=["alertas"])
 def crear_alerta(datos: AlertaCreate) -> dict:
-    return almacen_alertas().crear(datos.model_dump()).a_dict()
+    return _alerta_publica(almacen_alertas().crear(datos.model_dump()))
 
 
 @app.put("/alertas/{id_alerta}", response_model=AlertaModel, tags=["alertas"])
@@ -391,7 +399,7 @@ def actualizar_alerta(id_alerta: str, datos: AlertaUpdate) -> dict:
     alerta = almacen_alertas().actualizar(id_alerta, datos.model_dump(exclude_unset=True))
     if alerta is None:
         raise HTTPException(status_code=404, detail=f"Alerta {id_alerta} no encontrada")
-    return alerta.a_dict()
+    return _alerta_publica(alerta)
 
 
 @app.delete("/alertas/{id_alerta}", tags=["alertas"])
