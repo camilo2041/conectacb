@@ -1,0 +1,43 @@
+{
+  "alertas": [
+    {
+      "id": "AL-001",
+      "tipo": "derrumbe",
+      "titulo": "Derrumbe parcial en la via a Quiba",
+      "descripcion": "La ruta veredal va por desvio.",
+      "severidad": "alta",
+      "retraso_seg": 540,
+      "lineas_afectadas": ["CB-05", "CB-09"],
+      "geometria": { "type": "Point", "coordinates": [-74.182, 4.528] },
+      "vigencia": { "desde": null, "hasta": null },
+      "fuente": "ConectaCB",
+      "activo": true
+    },
+    {
+      "id": "AL-002",
+      "tipo": "obra",
+      "titulo": "Colectivo desviado por obra",
+      "descripcion": "Desvio en Sierra Morena, +4 min.",
+      "severidad": "media",
+      "retraso_seg": 240,
+      "lineas_afectadas": ["CB-03"],
+      "geometria": { "type": "Point", "coordinates": [-74.152, 4.562] },
+      "vigencia": { "desde": null, "hasta": null },
+      "fuente": "ConectaCB",
+      "activo": true
+    },
+    {
+      "id": "AL-003",
+      "tipo": "trafico",
+      "titulo": "Trafico lento hacia Perdomo",
+      "descripcion": "Salida de Portal Tunal SITP +10 min.",
+      "severidad": "media",
+      "retraso_seg": 600,
+      "lineas_afectadas": [],
+      "geometria": { "type": "Point", "coordinates": [-74.1317, 4.5761] },
+      "vigencia": { "desde": null, "hasta": null },
+      "fuente": "ConectaCB",
+      "activo": true
+    }
+  ]
+}

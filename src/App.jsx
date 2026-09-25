@@ -3,6 +3,7 @@ import Navbar from './components/Navbar';
 import Hero from './components/Hero';
 import ModesBand from './components/ModesBand';
 import Footer from './components/Footer';
+import ChatWidget from './components/ChatWidget';
 import { lazySection } from './lib/lazySection';
 import './styles/sections.css';
 
@@ -41,6 +42,7 @@ export default function App() {
         <Lazy component={FinalCTA} />
       </main>
       <Footer />
+      <ChatWidget />
     </>
   );
 }

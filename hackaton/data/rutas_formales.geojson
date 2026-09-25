@@ -1,0 +1,286 @@
+{
+  "type": "FeatureCollection",
+  "name": "rutas_formales_bogota",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TMC-01",
+        "nombre": "TransMiCable Tunal (Portal Tunal - Mirador del Paraiso)",
+        "modo": "cable",
+        "tipo": "cable",
+        "operador": "TransMilenio",
+        "tarifa": 3200,
+        "tiempo_espera_seg": 180,
+        "frecuencia_min": 4,
+        "horario": {
+          "ini": "04:30",
+          "fin": "23:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 15.7,
+        "estaciones": [
+          "Portal Tunal",
+          "Juan Pablo II",
+          "Manitas",
+          "Mirador del Paraiso"
+        ],
+        "paradas": [
+          [
+            -74.139249,
+            4.569675
+          ],
+          [
+            -74.147484,
+            4.555691
+          ],
+          [
+            -74.15058,
+            4.55044
+          ],
+          [
+            -74.158767,
+            4.550082
+          ]
+        ],
+        "integrado": true,
+        "fuente": "OSM + Pilona_cable.geojson (23 pilonas, 3 subtramos)",
+        "nota": "Trazado real desde las pilonas; estaciones reales de TransMiCable."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.139249,
+            4.569675
+          ],
+          [
+            -74.13983943999999,
+            4.56891198
+          ],
+          [
+            -74.14016303000001,
+            4.56835198
+          ],
+          [
+            -74.14082787,
+            4.56720142
+          ],
+          [
+            -74.14158087,
+            4.56589827
+          ],
+          [
+            -74.14255062,
+            4.56422001
+          ],
+          [
+            -74.14347918,
+            4.56261301
+          ],
+          [
+            -74.14435806,
+            4.561092
+          ],
+          [
+            -74.14514877,
+            4.55972356
+          ],
+          [
+            -74.14663131,
+            4.55715781
+          ],
+          [
+            -74.14721338,
+            4.55615043
+          ],
+          [
+            -74.14726802,
+            4.55605588
+          ],
+          [
+            -74.147484,
+            4.555691
+          ],
+          [
+            -74.14756976,
+            4.55552564
+          ],
+          [
+            -74.14786566000001,
+            4.55499845
+          ],
+          [
+            -74.14817423,
+            4.55444868
+          ],
+          [
+            -74.14903935,
+            4.55290732
+          ],
+          [
+            -74.1503276,
+            4.55061206
+          ],
+          [
+            -74.15058,
+            4.55044
+          ],
+          [
+            -74.15083032,
+            4.55026838
+          ],
+          [
+            -74.15098488,
+            4.55026513
+          ],
+          [
+            -74.15239654,
+            4.55023543
+          ],
+          [
+            -74.1536941,
+            4.55020814
+          ],
+          [
+            -74.15467551,
+            4.55018749
+          ],
+          [
+            -74.15644125,
+            4.55015034
+          ],
+          [
+            -74.15841289,
+            4.55010884
+          ],
+          [
+            -74.158767,
+            4.550082
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "TMC-02",
+        "nombre": "Troncal TransMilenio Portal Tunal - Las Aguas",
+        "modo": "troncal",
+        "tipo": "troncal",
+        "operador": "TransMilenio",
+        "tarifa": 3200,
+        "tiempo_espera_seg": 180,
+        "frecuencia_min": 3,
+        "horario": {
+          "ini": "04:00",
+          "fin": "23:30",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 25,
+        "estaciones": [
+          "Portal Tunal",
+          "Sena",
+          "La Despensa",
+          "Bosa",
+          "Las Aguas"
+        ],
+        "paradas": [
+          [
+            -74.139249,
+            4.569675
+          ],
+          [
+            -74.134,
+            4.575
+          ],
+          [
+            -74.126,
+            4.582
+          ],
+          [
+            -74.116,
+            4.589
+          ],
+          [
+            -74.106,
+            4.594
+          ],
+          [
+            -74.094,
+            4.597
+          ],
+          [
+            -74.083,
+            4.598
+          ],
+          [
+            -74.0755,
+            4.5987
+          ]
+        ],
+        "integrado": true,
+        "nota": "Trazado aproximado (demo); Portal Tunal es la coordenada real."
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.139249,
+            4.569675
+          ],
+          [
+            -74.134,
+            4.575
+          ],
+          [
+            -74.126,
+            4.582
+          ],
+          [
+            -74.116,
+            4.589
+          ],
+          [
+            -74.106,
+            4.594
+          ],
+          [
+            -74.094,
+            4.597
+          ],
+          [
+            -74.083,
+            4.598
+          ],
+          [
+            -74.0755,
+            4.5987
+          ]
+        ]
+      }
+    }
+  ]
+}

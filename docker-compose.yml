@@ -35,9 +35,34 @@ services:
       - traefik.http.middlewares.conectacb.headers.STSIncludeSubdomains=true
       - traefik.http.middlewares.conectacb.headers.STSPreload=true
       - traefik.http.routers.conectacb.middlewares=conectacb@docker
+    depends_on:
+      - conectacb-api
     networks:
       - traefik-net
+      - interna
+
+  # API de rutas (FastAPI). Sin labels de Traefik: solo es accesible desde la web vía /api.
+  conectacb-api:
+    build:
+      context: ./hackaton
+    image: conectacb-api:latest
+    container_name: conectacb-api
+    restart: unless-stopped
+    environment:
+      TZ: America/Bogota
+      RUTAS_CORS_ORIGINS: https://${DOMAIN_NAME}
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+        limits:
+          memory: 512M
+          cpus: '1.0'
+    networks:
+      - interna
 
 networks:
   traefik-net:
     external: true
+  interna:

@@ -1,0 +1,24 @@
+{
+  "fuente": "OpenStreetMap (Photon) + Pilona_cable.geojson",
+  "lugares": [
+    { "nombre": "Portal Tunal", "tipo": "portal", "lat": 4.569675, "lon": -74.139249, "alias": ["portal tunal", "tunal", "estacion tunal"] },
+    { "nombre": "Juan Pablo II", "tipo": "estacion_cable", "lat": 4.555691, "lon": -74.147484, "alias": ["juan pablo", "juan pablo ii"] },
+    { "nombre": "Manitas", "tipo": "estacion_cable", "lat": 4.550440, "lon": -74.150580, "alias": ["manitas"] },
+    { "nombre": "Mirador del Paraiso", "tipo": "estacion_cable", "lat": 4.550082, "lon": -74.158767, "alias": ["mirador del paraiso", "mirador", "paraiso", "el paraiso"] },
+    { "nombre": "Compartir", "tipo": "barrio", "lat": 4.557258, "lon": -74.146366, "alias": ["compartir"] },
+    { "nombre": "Arborizadora Alta", "tipo": "barrio", "lat": 4.567694, "lon": -74.162493, "alias": ["arborizadora", "arborizadora alta"] },
+    { "nombre": "Arborizadora Baja", "tipo": "barrio", "lat": 4.573000, "lon": -74.155000, "alias": ["arborizadora baja"] },
+    { "nombre": "Lucero", "tipo": "barrio", "lat": 4.550982, "lon": -74.149733, "alias": ["lucero"] },
+    { "nombre": "Lucero Alto", "tipo": "barrio", "lat": 4.557882, "lon": -74.140086, "alias": ["lucero alto"] },
+    { "nombre": "Sierra Morena", "tipo": "barrio", "lat": 4.578093, "lon": -74.168718, "alias": ["sierra morena"] },
+    { "nombre": "San Francisco", "tipo": "barrio", "lat": 4.562547, "lon": -74.149283, "alias": ["san francisco"] },
+    { "nombre": "Bella Flor", "tipo": "barrio", "lat": 4.544367, "lon": -74.161621, "alias": ["bella flor"] },
+    { "nombre": "Cazuca", "tipo": "barrio", "lat": 4.575000, "lon": -74.180000, "alias": ["cazuca", "altos de cazuca"] },
+    { "nombre": "Perdomo", "tipo": "barrio", "lat": 4.587186, "lon": -74.166112, "alias": ["perdomo", "perdomo alto"] },
+    { "nombre": "Mochuelo Alto", "tipo": "vereda", "lat": 4.488357, "lon": -74.148341, "alias": ["mochuelo", "mochuelo alto"] },
+    { "nombre": "Mochuelo Bajo", "tipo": "vereda", "lat": 4.508277, "lon": -74.148186, "alias": ["mochuelo bajo"] },
+    { "nombre": "Quiba", "tipo": "vereda", "lat": 4.513704, "lon": -74.164648, "alias": ["quiba", "quiba alto", "quiba bajo"] },
+    { "nombre": "Pasquilla", "tipo": "vereda", "lat": 4.448443, "lon": -74.155291, "alias": ["pasquilla"] },
+    { "nombre": "Las Aguas", "tipo": "estacion_troncal", "lat": 4.598700, "lon": -74.075500, "alias": ["las aguas", "centro"] }
+  ]
+}

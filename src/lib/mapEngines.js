@@ -52,8 +52,8 @@ export async function createLeafletEngine(el, { isCancelled } = {}) {
       const v = L.circleMarker(pos, { radius: 6, color, weight: 3, fillColor: '#fff', fillOpacity: 1, interactive: false }).addTo(map);
       return { ...toggle(v), setPos: p => v.setLatLng(p) };
     },
-    fit(points) {
-      map.fitBounds(L.latLngBounds(points.map(p => [p.lat, p.lng])), { padding: [FIT_PADDING, FIT_PADDING] });
+    fit(points, padding = FIT_PADDING) {
+      map.fitBounds(L.latLngBounds(points.map(p => [p.lat, p.lng])), { padding: [padding, padding], animate: true });
     },
     flyTo(pos, zoom) {
       map.flyTo(pos, zoom, { duration: 0.8 });
@@ -129,10 +129,10 @@ export async function createGoogleEngine(el, { apiKey, mapId, onAuthFailure, isC
       const m = new AdvancedMarkerElement({ map, position: pos, content: dot, zIndex: 5 });
       return { ...toggle([m]), setPos: p => (m.position = p) };
     },
-    fit(points) {
+    fit(points, padding = FIT_PADDING) {
       const bounds = new maps.LatLngBounds();
       points.forEach(p => bounds.extend(p));
-      map.fitBounds(bounds, FIT_PADDING);
+      map.fitBounds(bounds, padding);
     },
     flyTo(pos, zoom) {
       map.panTo(pos);

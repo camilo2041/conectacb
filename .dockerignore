@@ -1,6 +1,9 @@
 node_modules
 dist
+dist-ssr
 .git
+# La API tiene su propia imagen (hackaton/Dockerfile)
+hackaton
 .claude
 .env
 .env.*

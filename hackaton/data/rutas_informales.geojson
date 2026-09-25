@@ -1,0 +1,129 @@
+{
+  "type": "FeatureCollection",
+  "name": "rutas_informales_bogota",
+  "crs": { "type": "name", "properties": { "name": "urn:ogc:def:crs:OGC:1.3:CRS84" } },
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "INF-001",
+        "nombre": "Colectivo Suba - Centro",
+        "modo": "colectivo",
+        "tarifa": 2800,
+        "tiempo_espera_seg": 300,
+        "frecuencia_min": 8,
+        "horario": { "ini": "05:00", "fin": "22:00", "dias": ["L", "M", "X", "J", "V", "S"] },
+        "velocidad_kmh": 22
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.083, 4.757],
+          [-74.075, 4.740],
+          [-74.070, 4.720],
+          [-74.068, 4.700],
+          [-74.066, 4.680],
+          [-74.065, 4.660],
+          [-74.070, 4.640],
+          [-74.080, 4.615]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "INF-002",
+        "nombre": "Buseta Usme - Centro",
+        "modo": "buseta",
+        "tarifa": 3000,
+        "tiempo_espera_seg": 420,
+        "frecuencia_min": 12,
+        "horario": { "ini": "04:30", "fin": "21:00", "dias": ["L", "M", "X", "J", "V", "S"] },
+        "velocidad_kmh": 20
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.115, 4.475],
+          [-74.105, 4.500],
+          [-74.098, 4.525],
+          [-74.090, 4.550],
+          [-74.085, 4.575],
+          [-74.082, 4.600]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "INF-003",
+        "nombre": "Colectivo Kennedy - Centro",
+        "modo": "colectivo",
+        "tarifa": 2800,
+        "tiempo_espera_seg": 240,
+        "frecuencia_min": 6,
+        "horario": { "ini": "05:00", "fin": "23:00", "dias": ["L", "M", "X", "J", "V", "S", "D"] },
+        "velocidad_kmh": 24
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.155, 4.630],
+          [-74.140, 4.628],
+          [-74.125, 4.625],
+          [-74.110, 4.622],
+          [-74.095, 4.615],
+          [-74.085, 4.608]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "INF-004",
+        "nombre": "Mototaxi Bosa local",
+        "modo": "mototaxi",
+        "tarifa": 4000,
+        "tiempo_espera_seg": 120,
+        "frecuencia_min": 3,
+        "horario": { "ini": "06:00", "fin": "20:00", "dias": ["L", "M", "X", "J", "V", "S"] },
+        "velocidad_kmh": 28
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.200, 4.615],
+          [-74.190, 4.620],
+          [-74.180, 4.618],
+          [-74.170, 4.615],
+          [-74.160, 4.612]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "INF-005",
+        "nombre": "Colectivo Calle 80 - Centro",
+        "modo": "colectivo",
+        "tarifa": 2800,
+        "tiempo_espera_seg": 300,
+        "frecuencia_min": 10,
+        "horario": { "ini": "05:00", "fin": "22:00", "dias": ["L", "M", "X", "J", "V", "S"] },
+        "velocidad_kmh": 23
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [-74.120, 4.690],
+          [-74.105, 4.685],
+          [-74.090, 4.680],
+          [-74.078, 4.675],
+          [-74.070, 4.670],
+          [-74.068, 4.660],
+          [-74.075, 4.640]
+        ]
+      }
+    }
+  ]
+}

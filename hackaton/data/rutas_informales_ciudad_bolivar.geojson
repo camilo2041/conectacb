@@ -1,0 +1,474 @@
+{
+  "type": "FeatureCollection",
+  "name": "rutas_informales_ciudad_bolivar",
+  "crs": {
+    "type": "name",
+    "properties": {
+      "name": "urn:ogc:def:crs:OGC:1.3:CRS84"
+    }
+  },
+  "fuente": "Anclas reales de OpenStreetMap (Photon); trazados aproximados.",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-01",
+        "nombre": "Colectivo Arborizadora Alta - Portal Tunal",
+        "modo": "colectivo",
+        "tipo": "informal",
+        "tarifa": 3000,
+        "tiempo_espera_seg": 240,
+        "frecuencia_min": 6,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 20,
+        "tipo_zona": "urbano",
+        "barrios": [
+          "Arborizadora Alta",
+          "Portal Tunal"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.162493,
+            4.567694
+          ],
+          [
+            -74.155,
+            4.571
+          ],
+          [
+            -74.147,
+            4.5705
+          ],
+          [
+            -74.139249,
+            4.569675
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-02",
+        "nombre": "Buseta Compartir - Estacion Mirador del Paraiso",
+        "modo": "buseta",
+        "tipo": "informal",
+        "tarifa": 3200,
+        "tiempo_espera_seg": 360,
+        "frecuencia_min": 10,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 18,
+        "tipo_zona": "urbano",
+        "barrios": [
+          "Compartir",
+          "Manitas"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.146366,
+            4.557258
+          ],
+          [
+            -74.1485,
+            4.554
+          ],
+          [
+            -74.15058,
+            4.55044
+          ],
+          [
+            -74.158767,
+            4.550082
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-03",
+        "nombre": "Colectivo Juan Pablo II - Lucero Alto",
+        "modo": "colectivo",
+        "tipo": "informal",
+        "tarifa": 3000,
+        "tiempo_espera_seg": 300,
+        "frecuencia_min": 8,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 19,
+        "tipo_zona": "urbano",
+        "barrios": [
+          "Juan Pablo II",
+          "Lucero Alto"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.147484,
+            4.555691
+          ],
+          [
+            -74.144,
+            4.5568
+          ],
+          [
+            -74.140086,
+            4.557882
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-04",
+        "nombre": "Mototaxi Mochuelo Bajo - Mochuelo Alto",
+        "modo": "mototaxi",
+        "tipo": "informal",
+        "tarifa": 4000,
+        "tiempo_espera_seg": 120,
+        "frecuencia_min": 3,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 25,
+        "tipo_zona": "rural",
+        "veredas": [
+          "Mochuelo Bajo",
+          "Mochuelo Alto"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.148186,
+            4.508277
+          ],
+          [
+            -74.1483,
+            4.498
+          ],
+          [
+            -74.148341,
+            4.488357
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-05",
+        "nombre": "Campero Quiba - Cazuca",
+        "modo": "campero",
+        "tipo": "informal",
+        "tarifa": 5000,
+        "tiempo_espera_seg": 600,
+        "frecuencia_min": 20,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 20,
+        "tipo_zona": "rural",
+        "veredas": [
+          "Quiba",
+          "Bella Flor"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.164648,
+            4.513704
+          ],
+          [
+            -74.163,
+            4.525
+          ],
+          [
+            -74.161621,
+            4.544367
+          ],
+          [
+            -74.166,
+            4.56
+          ],
+          [
+            -74.18,
+            4.575
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-06",
+        "nombre": "Campero Pasquilla - Mochuelo Alto",
+        "modo": "campero",
+        "tipo": "informal",
+        "tarifa": 6000,
+        "tiempo_espera_seg": 900,
+        "frecuencia_min": 30,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 18,
+        "tipo_zona": "rural",
+        "veredas": [
+          "Pasquilla",
+          "Mochuelo Alto"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.155291,
+            4.448443
+          ],
+          [
+            -74.152,
+            4.462
+          ],
+          [
+            -74.15,
+            4.476
+          ],
+          [
+            -74.148341,
+            4.488357
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-07",
+        "nombre": "Mototaxi Cazuca - Mirador del Paraiso",
+        "modo": "mototaxi",
+        "tipo": "informal",
+        "tarifa": 4500,
+        "tiempo_espera_seg": 180,
+        "frecuencia_min": 5,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 26,
+        "tipo_zona": "urbano",
+        "barrios": [
+          "Cazuca",
+          "Arborizadora Alta",
+          "El Paraiso"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.18,
+            4.575
+          ],
+          [
+            -74.17,
+            4.571
+          ],
+          [
+            -74.162493,
+            4.567694
+          ],
+          [
+            -74.163874,
+            4.550313
+          ],
+          [
+            -74.158767,
+            4.550082
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-08",
+        "nombre": "Colectivo San Francisco - Arborizadora Alta",
+        "modo": "colectivo",
+        "tipo": "informal",
+        "tarifa": 3000,
+        "tiempo_espera_seg": 300,
+        "frecuencia_min": 9,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 20,
+        "tipo_zona": "urbano",
+        "barrios": [
+          "San Francisco",
+          "Arborizadora Alta"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.149283,
+            4.562547
+          ],
+          [
+            -74.155,
+            4.565
+          ],
+          [
+            -74.162493,
+            4.567694
+          ]
+        ]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "id": "CB-09",
+        "nombre": "Campero Mochuelo Bajo - Quiba",
+        "modo": "campero",
+        "tipo": "informal",
+        "tarifa": 4000,
+        "tiempo_espera_seg": 600,
+        "frecuencia_min": 25,
+        "horario": {
+          "ini": "04:30",
+          "fin": "22:00",
+          "dias": [
+            "L",
+            "M",
+            "X",
+            "J",
+            "V",
+            "S",
+            "D"
+          ]
+        },
+        "velocidad_kmh": 18,
+        "tipo_zona": "rural",
+        "veredas": [
+          "Mochuelo Bajo",
+          "Quiba"
+        ]
+      },
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [
+            -74.148186,
+            4.508277
+          ],
+          [
+            -74.152,
+            4.51
+          ],
+          [
+            -74.164648,
+            4.513704
+          ]
+        ]
+      }
+    }
+  ]
+}

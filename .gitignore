@@ -5,3 +5,6 @@ dist-ssr
 *.local
 .env
 .claude/
+__pycache__/
+.pytest_cache/
+.venv/

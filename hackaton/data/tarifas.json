@@ -1,0 +1,8 @@
+{
+  "moneda": "COP",
+  "sistema_integrado": "TransMilenio",
+  "ventana_integracion_min": 110,
+  "tipos_integrados": ["cable", "formal", "troncal", "alimentador", "sitp", "urbano"],
+  "tarifa_base_troncal": 3200,
+  "nota": "TransMiCable y SITP zonal estan integrados con TransMilenio: dentro de la ventana, el segundo abordaje integrado no cobra. Los modos informales (colectivo, buseta, mototaxi, campero) no son integrados y cobran su propia tarifa."
+}

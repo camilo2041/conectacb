@@ -7,8 +7,19 @@ const VENDORS = [
   ['motion', /[\\/]node_modules[\\/](motion|framer-motion|motion-dom|motion-utils)[\\/]/]
 ];
 
+// En desarrollo /api va a la API local (uvicorn en :8000); en producción lo reenvía nginx.
+const apiProxy = {
+  '/api': {
+    target: process.env.API_PROXY_TARGET || 'http://127.0.0.1:8000',
+    changeOrigin: true,
+    rewrite: path => path.replace(/^\/api/, '')
+  }
+};
+
 export default defineConfig({
   plugins: [react()],
+  server: { proxy: apiProxy },
+  preview: { proxy: apiProxy },
   build: {
     // Un solo CSS: las secciones diferidas llegan pre-renderadas y deben verse con estilo desde el primer pintado.
     cssCodeSplit: false,

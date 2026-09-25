@@ -1,22 +1,41 @@
 import { useEffect, useRef, useState } from 'react';
 import SplitText from './reactbits/SplitText';
-import { EVENTS, EVENT_TYPES, LINES, STOPS, SYSTEMS, segment, servicePath } from '../data/network';
+import Icon from './Icon';
+import { api } from '../lib/api';
+import { routeStore } from '../lib/routeStore';
+import { accent } from '../lib/text';
 import { eventIconSvg } from '../data/eventIcons';
+import { SYSTEMS, WALK_COLOR, eventType, inCB, systemOf, toLatLng } from '../data/mapStyle';
 import { createGoogleEngine, createLeafletEngine } from '../lib/mapEngines';
 
 const API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
 const MAP_ID = import.meta.env.VITE_GOOGLE_MAPS_MAP_ID || 'DEMO_MAP_ID';
-const CLOSED_COLOR = '#475569';
+const HUB_TYPES = new Set(['portal', 'estacion_cable']);
+const LABEL_LEFT = new Set(['Mirador del Paraiso']);
+const ROUTE_COLORS = { cable: SYSTEMS.cable.color, formal: SYSTEMS.formal.color, informal: SYSTEMS.informal.color, acceso: WALK_COLOR };
 
-const stopHtml = s =>
-  `<div class="pin stop ${s.hub ? 'stop--hub' : ''} ${s.labelLeft ? 'stop--left' : ''}" style="--c:${SYSTEMS[s.system].color}"><i></i>${
-    s.hub ? `<span>${s.name}</span>` : ''
-  }</div>`;
+function normalize(capas, lugares, alertas) {
+  const lines = capas.features
+    .filter(f => f.properties.capa === 'linea' && f.geometry?.type === 'LineString')
+    .map(f => ({ ...f.properties, system: systemOf(f.properties.tipo), path: f.geometry.coordinates.map(toLatLng) }));
+  const pylons = capas.features.filter(f => f.properties.capa === 'pilona').map(f => toLatLng(f.geometry.coordinates));
+  const places = lugares.lugares.map(l => ({ ...l, pos: { lat: l.lat, lng: l.lon } }));
+  const events = alertas
+    .filter(a => a.geometria)
+    .map(a => {
+      const coords = a.geometria.type === 'Point' ? [a.geometria.coordinates] : a.geometria.coordinates.flat(a.geometria.type === 'Polygon' ? 1 : 0);
+      return { ...a, pos: toLatLng(coords[Math.floor(coords.length / 2)]) };
+    });
+  return { lines, pylons, places, events };
+}
 
-const eventHtml = ev => {
-  const t = EVENT_TYPES[ev.type];
-  return `<div class="pin ev ${t.severe ? 'ev--severe' : ''}" style="--c:${t.color}"><b class="ev__badge">${eventIconSvg(ev.type)}</b><span class="ev__label">${ev.title}</span></div>`;
-};
+const stopHtml = p =>
+  HUB_TYPES.has(p.tipo)
+    ? `<div class="pin stop stop--hub ${LABEL_LEFT.has(p.nombre) ? 'stop--left' : ''}" style="--c:${SYSTEMS.cable.color}"><i></i><span>${accent(p.nombre)}</span></div>`
+    : `<div class="pin place"><i></i><span>${accent(p.nombre)}</span></div>`;
+
+const eventHtml = ev =>
+  `<div class="pin ev ${ev.severidad === 'alta' ? 'ev--severe' : ''}" style="--c:${eventType(ev.tipo).color}"><b class="ev__badge">${eventIconSvg(ev.tipo)}</b><span class="ev__label">${accent(ev.titulo)}</span></div>`;
 
 function pathSampler(path) {
   const cum = [0];
@@ -25,7 +44,7 @@ function pathSampler(path) {
     const b = path[i];
     cum.push(cum[i - 1] + Math.hypot(b.lat - a.lat, (b.lng - a.lng) * Math.cos((a.lat * Math.PI) / 180)));
   }
-  const total = cum[cum.length - 1];
+  const total = cum[cum.length - 1] || 1;
   return t => {
     const d = t * total;
     let i = 1;
@@ -35,44 +54,87 @@ function pathSampler(path) {
   };
 }
 
-function buildLayers(engine, onSelect) {
+function overviewPoints(data) {
+  return [
+    ...data.lines.flatMap(l => l.path).filter(inCB),
+    ...data.places.map(p => p.pos).filter(inCB),
+    ...data.events.map(e => e.pos).filter(inCB)
+  ];
+}
+
+function buildLayers(engine, data, onSelect) {
   const systems = Object.fromEntries(Object.keys(SYSTEMS).map(k => [k, []]));
-  const events = Object.fromEntries(Object.keys(EVENT_TYPES).map(k => [k, []]));
+  const events = {};
   const markers = {};
+  const byId = new Map(data.lines.map(l => [l.id, l]));
 
-  EVENTS.filter(ev => ev.slow).forEach(ev =>
-    events[ev.type].push(engine.polyline({ path: segment(ev.slow), color: EVENT_TYPES[ev.type].color, weight: 16, opacity: 0.5, glow: true, z: 0 }))
-  );
+  // Resalta bajo cada línea afectada el color de la novedad que la afecta.
+  data.events.forEach(ev => {
+    (events[ev.tipo] ??= []).push(
+      ...ev.lineas_afectadas
+        .map(id => byId.get(id))
+        .filter(Boolean)
+        .map(l => engine.polyline({ path: l.path, color: eventType(ev.tipo).color, weight: 16, opacity: 0.35, glow: true, z: 0 }))
+    );
+  });
 
-  LINES.forEach(l => {
+  data.lines.forEach(l => {
     const s = SYSTEMS[l.system];
     const dash = s.style === 'solid' ? null : s.style;
     systems[l.system].push(engine.polyline({ path: l.path, color: s.color, weight: l.system === 'cable' ? 6 : 5, dash, flow: Boolean(dash), casing: true, z: 2 }));
   });
 
-  EVENTS.forEach(ev => {
-    if (ev.closed) events[ev.type].push(engine.polyline({ path: segment(ev.closed), color: CLOSED_COLOR, weight: 5, dash: 'short', casing: true, z: 4 }));
-    if (ev.detour)
-      events[ev.type].push(engine.polyline({ path: ev.detour, color: EVENT_TYPES.desvio.color, weight: 5, dash: 'dash', flow: true, casing: true, z: 6 }));
-  });
+  data.pylons.forEach(pos => systems.cable.push(engine.marker({ pos, html: '<div class="pin pylon"></div>', title: 'Pilona del TransMiCable', z: 1 })));
+  data.places.forEach(p => engine.marker({ pos: p.pos, html: stopHtml(p), title: accent(p.nombre), z: HUB_TYPES.has(p.tipo) ? 2 : 1 }));
 
-  STOPS.forEach(s => systems[s.system].push(engine.marker({ pos: s.pos, html: stopHtml(s), title: s.name, z: 1 })));
-
-  EVENTS.forEach(ev => {
-    const m = engine.marker({ pos: ev.pos, html: eventHtml(ev), title: `${EVENT_TYPES[ev.type].label}: ${ev.title}`, onClick: () => onSelect(ev.id), z: 3 });
-    events[ev.type].push(m);
+  data.events.forEach(ev => {
+    const m = engine.marker({ pos: ev.pos, html: eventHtml(ev), title: `${eventType(ev.tipo).label}: ${accent(ev.titulo)}`, onClick: () => onSelect(ev.id), z: 3 });
+    events[ev.tipo].push(m);
     markers[ev.id] = m;
   });
 
-  const vehicles = LINES.map((l, i) => {
-    const sample = pathSampler(servicePath(l.id));
-    const v = engine.vehicle({ pos: l.path[0], color: SYSTEMS[l.system].color });
-    systems[l.system].push(v);
-    return { v, sample, speed: l.system === 'cable' ? 1 / 14000 : 1 / 24000, phase: i * 0.27 };
-  });
+  const vehicles = data.lines
+    .filter(l => inCB(l.path[0]) && l.path.length > 1)
+    .map((l, i) => {
+      const v = engine.vehicle({ pos: l.path[0], color: SYSTEMS[l.system].color });
+      systems[l.system].push(v);
+      return { v, sample: pathSampler(l.path), speed: l.system === 'cable' ? 1 / 14000 : 1 / 26000, phase: i * 0.21 };
+    });
 
-  engine.fit([...STOPS.map(s => s.pos), ...EVENTS.map(e => e.pos)]);
-  return { engine, systems, events, markers, vehicles };
+  engine.fit(overviewPoints(data));
+  return { systems, events, markers, vehicles };
+}
+
+function drawRoute(engine, route) {
+  const handles = [];
+  route.tramos
+    .filter(t => t.geometria?.type === 'LineString' && t.modo !== 'directo')
+    .forEach(t => {
+      const walk = t.modo === 'acceso';
+      handles.push(
+        engine.polyline({
+          path: t.geometria.coordinates.map(toLatLng),
+          color: ROUTE_COLORS[t.modo] ?? WALK_COLOR,
+          weight: walk ? 5 : 9,
+          dash: walk ? 'short' : null,
+          casing: true,
+          z: 8
+        })
+      );
+    });
+  const ends = [
+    [route.origen, 'A'],
+    [route.destino, 'B']
+  ].filter(([p]) => p);
+  ends.forEach(([p, letter]) =>
+    handles.push(engine.marker({ pos: { lat: p.lat, lng: p.lon }, html: `<div class="pin route-end">${letter}</div>`, title: accent(p.nombre), z: 5 }))
+  );
+  const points = [
+    ...route.tramos.filter(t => t.geometria?.type === 'LineString').flatMap(t => t.geometria.coordinates.map(toLatLng)),
+    ...ends.map(([p]) => ({ lat: p.lat, lng: p.lon }))
+  ];
+  if (points.length) engine.fit(points, 60);
+  return handles;
 }
 
 function animateVehicles(vehicles) {
@@ -96,15 +158,40 @@ function toggleIn(set, key) {
   return next;
 }
 
+function timeAgo(iso, now) {
+  const min = Math.max(1, Math.round((now - Date.parse(iso)) / 60000));
+  if (min < 60) return `hace ${min} min`;
+  const h = Math.round(min / 60);
+  return h < 24 ? `hace ${h} h` : `hace ${Math.round(h / 24)} d`;
+}
+
 export default function LiveMapSection() {
   const mapRef = useRef(null);
+  const engineRef = useRef(null);
   const layers = useRef(null);
   const [engineName, setEngineName] = useState(null);
-  const [version, setVersion] = useState(0);
-  const [ready, setReady] = useState(false);
+  const [engineVersion, setEngineVersion] = useState(0);
+  const [tilesReady, setTilesReady] = useState(false);
+  const [data, setData] = useState(null);
+  const [loadError, setLoadError] = useState(false);
   const [hiddenSystems, setHiddenSystems] = useState(() => new Set());
   const [hiddenTypes, setHiddenTypes] = useState(() => new Set());
   const [selected, setSelected] = useState(null);
+  const [route, setRoute] = useState(null);
+  const [now, setNow] = useState(null);
+
+  // Se lee en un efecto (no en el estado inicial) para que el primer render coincida con el HTML pre-renderado.
+  useEffect(() => {
+    setRoute(routeStore.get());
+    return routeStore.subscribe(setRoute);
+  }, []);
+
+  useEffect(() => {
+    setNow(Date.now());
+    Promise.all([api.capas(), api.lugares(), api.alertas()])
+      .then(([capas, lugares, alertas]) => setData(normalize(capas, lugares, alertas)))
+      .catch(() => setLoadError(true));
+  }, []);
 
   useEffect(() => {
     const io = new IntersectionObserver(
@@ -124,8 +211,7 @@ export default function LiveMapSection() {
     if (!engineName) return;
     let cancelled = false;
     let engine;
-    let stopAnimation = () => {};
-    setReady(false);
+    setTilesReady(false);
 
     (async () => {
       const isCancelled = () => cancelled;
@@ -148,19 +234,26 @@ export default function LiveMapSection() {
         engine.destroy();
         return;
       }
-      layers.current = buildLayers(engine, setSelected);
-      engine.onReady(() => !cancelled && setReady(true));
-      stopAnimation = animateVehicles(layers.current.vehicles);
-      setVersion(v => v + 1);
+      engineRef.current = engine;
+      engine.onReady(() => !cancelled && setTilesReady(true));
+      setEngineVersion(v => v + 1);
     })();
 
     return () => {
       cancelled = true;
-      stopAnimation();
+      engineRef.current = null;
       layers.current = null;
       engine?.destroy();
     };
   }, [engineName]);
+
+  useEffect(() => {
+    const engine = engineRef.current;
+    if (!engine || !data) return;
+    layers.current = buildLayers(engine, data, setSelected);
+    const stop = animateVehicles(layers.current.vehicles);
+    return stop;
+  }, [engineVersion, data]);
 
   useEffect(() => {
     const l = layers.current;
@@ -168,16 +261,23 @@ export default function LiveMapSection() {
     Object.entries(l.systems).forEach(([k, list]) => list.forEach(x => x.show(!hiddenSystems.has(k))));
     Object.entries(l.events).forEach(([k, list]) => list.forEach(x => x.show(!hiddenTypes.has(k))));
     Object.entries(l.markers).forEach(([id, m]) => m.el?.firstElementChild?.classList.toggle('is-selected', id === selected));
-  }, [hiddenSystems, hiddenTypes, selected, version]);
+  }, [hiddenSystems, hiddenTypes, selected, engineVersion, data]);
 
   useEffect(() => {
-    const l = layers.current;
-    const ev = EVENTS.find(e => e.id === selected);
-    if (l && ev) l.engine.flyTo(ev.pos, 15.5);
-  }, [selected, version]);
+    const engine = engineRef.current;
+    const ev = data?.events.find(e => e.id === selected);
+    if (engine && ev) engine.flyTo(ev.pos, 15.5);
+  }, [selected, engineVersion, data]);
+
+  useEffect(() => {
+    const engine = engineRef.current;
+    if (!engine || !route || !data) return;
+    const handles = drawRoute(engine, route);
+    return () => handles.forEach(h => h.show(false));
+  }, [route, engineVersion, data]);
 
   const selectEvent = ev => {
-    setHiddenTypes(set => (set.has(ev.type) ? toggleIn(set, ev.type) : set));
+    setHiddenTypes(set => (set.has(ev.tipo) ? toggleIn(set, ev.tipo) : set));
     setSelected(ev.id);
   };
 
@@ -185,10 +285,13 @@ export default function LiveMapSection() {
     setSelected(null);
     setHiddenSystems(new Set());
     setHiddenTypes(new Set());
-    layers.current?.engine.fit([...STOPS.map(s => s.pos), ...EVENTS.map(e => e.pos)]);
+    routeStore.set(null);
+    if (engineRef.current && data) engineRef.current.fit(overviewPoints(data));
   };
 
-  const counts = EVENTS.reduce((acc, e) => ({ ...acc, [e.type]: (acc[e.type] ?? 0) + 1 }), {});
+  const lineCounts = data?.lines.reduce((acc, l) => ({ ...acc, [l.system]: (acc[l.system] ?? 0) + 1 }), {}) ?? {};
+  const typeCounts = data?.events.reduce((acc, e) => ({ ...acc, [e.tipo]: (acc[e.tipo] ?? 0) + 1 }), {}) ?? {};
+  const feed = data ? [...data.events].sort((a, b) => Date.parse(b.actualizado_en) - Date.parse(a.actualizado_en)) : [];
 
   return (
     <section className="section livemap" id="mapa">
@@ -214,10 +317,27 @@ export default function LiveMapSection() {
         <div className="livemap__panel">
           <div className="livemap__map">
             <div key={engineName ?? 'idle'} ref={mapRef} className="gmap" role="region" aria-label="Mapa de rutas y novedades de Ciudad Bolívar" />
-            {!ready && <div className="gmap-loading">Cargando mapa de Ciudad Bolívar…</div>}
+            {loadError ? (
+              <div className="gmap-loading gmap-loading--error">No pudimos cargar las rutas en vivo. Intenta recargar la página.</div>
+            ) : (
+              !(tilesReady && data) && <div className="gmap-loading">Cargando mapa de Ciudad Bolívar…</div>
+            )}
             <div className="livemap__status">
-              <span className="live-dot" /> En vivo · hace 1 min
+              <span className="live-dot" /> En vivo
             </div>
+            {route && (
+              <div className="livemap__route">
+                <span>
+                  <b>
+                    {route.from} <Icon name="arrow" size={13} /> {route.to}
+                  </b>
+                  {route.minutes} min · {route.legs.filter(l => l.kind !== 'walk').length} tramos
+                </span>
+                <button type="button" onClick={() => routeStore.set(null)} aria-label="Quitar ruta del mapa">
+                  <Icon name="close" size={16} />
+                </button>
+              </div>
+            )}
             <button type="button" className="livemap__reset" onClick={showAll}>
               Ver todo
             </button>
@@ -238,7 +358,10 @@ export default function LiveMapSection() {
                   >
                     <span className={`swatch swatch--${s.style}`} style={{ '--c': s.color }} />
                     <span className="legend-row__text">
-                      <b>{s.label}</b>
+                      <b>
+                        {s.label}
+                        {data && <span className="legend-row__count">{lineCounts[k] ?? 0}</span>}
+                      </b>
                       <small>{s.desc}</small>
                     </span>
                     <span className="legend-row__check" aria-hidden="true" />
@@ -249,7 +372,10 @@ export default function LiveMapSection() {
 
             <div className="legend__group">
               <h3>Novedades</h3>
-              {Object.entries(EVENT_TYPES).map(([k, t]) => {
+              {!data && <p className="legend__empty">{loadError ? 'No disponibles por ahora.' : 'Cargando novedades…'}</p>}
+              {data && data.events.length === 0 && <p className="legend__empty">Sin novedades reportadas. ¡Buen viaje!</p>}
+              {Object.entries(typeCounts).map(([k, count]) => {
+                const t = eventType(k);
                 const on = !hiddenTypes.has(k);
                 return (
                   <button
@@ -263,15 +389,7 @@ export default function LiveMapSection() {
                     <span className="legend-row__text">
                       <b>
                         {t.label}
-                        {k === 'trancon' && <i className="mini-swatch mini-swatch--glow" style={{ '--c': t.color }} />}
-                        {k === 'desvio' && (
-                          <>
-                            <i className="mini-swatch mini-swatch--dash" style={{ '--c': t.color }} />
-                            <i className="mini-swatch mini-swatch--short" style={{ '--c': CLOSED_COLOR }} />
-                          </>
-                        )}
-                        {k === 'cierre' && <i className="mini-swatch mini-swatch--short" style={{ '--c': CLOSED_COLOR }} />}
-                        <span className="legend-row__count">{counts[k] ?? 0}</span>
+                        <span className="legend-row__count">{count}</span>
                       </b>
                       <small>{t.desc}</small>
                     </span>
@@ -279,37 +397,35 @@ export default function LiveMapSection() {
                   </button>
                 );
               })}
+              {data && data.events.some(e => e.lineas_afectadas.length) && (
+                <p className="legend__hint">
+                  <i className="mini-swatch mini-swatch--glow" style={{ '--c': '#f59e0b' }} /> El resplandor marca las líneas afectadas.
+                </p>
+              )}
             </div>
 
-            <div className="legend__group">
-              <h3>Qué está pasando</h3>
-              <ul className="feed">
-                {[...EVENTS]
-                  .sort((a, b) => a.ago - b.ago)
-                  .map(ev => (
+            {feed.length > 0 && (
+              <div className="legend__group">
+                <h3>Qué está pasando</h3>
+                <ul className="feed">
+                  {feed.map(ev => (
                     <li key={ev.id}>
-                      <button
-                        type="button"
-                        className={`feed-item ${selected === ev.id ? 'is-active' : ''}`}
-                        onClick={() => selectEvent(ev)}
-                      >
-                        <span
-                          className="ev-dot"
-                          style={{ '--c': EVENT_TYPES[ev.type].color }}
-                          dangerouslySetInnerHTML={{ __html: eventIconSvg(ev.type, 14) }}
-                        />
+                      <button type="button" className={`feed-item ${selected === ev.id ? 'is-active' : ''}`} onClick={() => selectEvent(ev)}>
+                        <span className="ev-dot" style={{ '--c': eventType(ev.tipo).color }} dangerouslySetInnerHTML={{ __html: eventIconSvg(ev.tipo, 14) }} />
                         <span className="feed-item__text">
-                          <b>{ev.title}</b>
+                          <b>{accent(ev.titulo)}</b>
                           <small>
-                            {ev.place} · {ev.impact}
+                            {accent(ev.descripcion) || eventType(ev.tipo).label}
+                            {ev.retraso_seg > 0 && !/\+\s?\d+\s?min/i.test(ev.descripcion) && ` · +${Math.round(ev.retraso_seg / 60)} min`}
                           </small>
                         </span>
-                        <time>hace {ev.ago} min</time>
+                        {now && <time dateTime={ev.actualizado_en}>{timeAgo(ev.actualizado_en, now)}</time>}
                       </button>
                     </li>
                   ))}
-              </ul>
-            </div>
+                </ul>
+              </div>
+            )}
           </aside>
         </div>
       </div>
