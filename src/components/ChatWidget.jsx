@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
 import Icon from './Icon';
-import { WEBCHAT_URL } from '../config';
+import { webchatUrl } from '../config';
 
 export default function ChatWidget() {
   const [open, setOpen] = useState(false);
   // El iframe se crea al primer clic y luego se conserva para no perder la conversación.
-  const [loaded, setLoaded] = useState(false);
+  const [src, setSrc] = useState(null);
+  const loaded = src !== null;
   const launcherRef = useRef(null);
   const closeRef = useRef(null);
 
@@ -18,7 +19,7 @@ export default function ChatWidget() {
   }, [open]);
 
   const toggle = () => {
-    setLoaded(true);
+    setSrc(s => s ?? webchatUrl());
     setOpen(o => !o);
   };
 
@@ -45,7 +46,7 @@ export default function ChatWidget() {
               <Icon name="close" size={18} />
             </button>
           </div>
-          <iframe src={WEBCHAT_URL} title="Chat de ConectaCB" allow="clipboard-write; microphone" />
+          <iframe src={src}title="Chat de ConectaCB" allow="clipboard-write; microphone" />
         </div>
       )}
 
