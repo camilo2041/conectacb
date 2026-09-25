@@ -53,7 +53,7 @@ export default function Planner() {
             from={{ opacity: 0, y: 50 }}
             to={{ opacity: 1, y: 0 }}
           />
-          <p className="lead">Escribe origen y destino. ConectaCB combina TransMiCable, SITP, colectivos y rutas veredales, y te da la ruta más rápida.</p>
+          <p className="lead">Dinos de dónde sales y a dónde vas. ConectaCB combina TransMiCable, SITP, colectivos y rutas veredales para darte la ruta más rápida.</p>
 
           <div className="chips">
             {QUICK_TRIPS.map(t => (

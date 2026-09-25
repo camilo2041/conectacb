@@ -4,7 +4,7 @@ import Icon from './Icon';
 
 const STEPS = [
   { title: 'Escribe tu destino', text: 'Por WhatsApp o en la web, con tus propias palabras.' },
-  { title: 'La IA combina todo', text: 'Horarios de TransMiCable y SITP, más colectivos y rutas veredales.' },
+  { title: 'La IA combina todo', text: 'Horarios de TransMiCable, SITP, colectivos y rutas veredales en una sola búsqueda.' },
   { title: 'Sal a la hora justa', text: 'Recibe tu ruta, tu tarifa y avisos si algo cambia.' }
 ];
 
