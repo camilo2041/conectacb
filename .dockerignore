@@ -1,0 +1,13 @@
+node_modules
+dist
+.git
+.claude
+.env
+.env.*
+*.log
+Dockerfile
+docker-compose.yml
+.dockerignore
+# Originales en alta resolución; la web usa las versiones optimizadas de src/assets
+/icono.png
+/rename.png

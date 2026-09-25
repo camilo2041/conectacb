@@ -1,0 +1,43 @@
+services:
+  conectacb:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        VITE_GOOGLE_MAPS_API_KEY: ${VITE_GOOGLE_MAPS_API_KEY:-}
+        VITE_GOOGLE_MAPS_MAP_ID: ${VITE_GOOGLE_MAPS_MAP_ID:-}
+    image: conectacb:latest
+    container_name: conectacb
+    restart: unless-stopped
+    deploy:
+      resources:
+        reservations:
+          memory: 128M
+          cpus: '0.25'
+        limits:
+          memory: 256M
+          cpus: '0.5'
+    labels:
+      - traefik.enable=true
+      - traefik.docker.network=traefik-net
+      - traefik.http.routers.conectacb.rule=Host(`${DOMAIN_NAME}`)
+      - traefik.http.routers.conectacb.tls=true
+      - traefik.http.routers.conectacb.entrypoints=web,websecure
+      - traefik.http.routers.conectacb.tls.certresolver=mytlschallenge
+      - traefik.http.services.conectacb.loadbalancer.server.port=80
+      - traefik.http.services.conectacb.loadbalancer.server.scheme=http
+      - traefik.http.middlewares.conectacb.headers.SSLRedirect=true
+      - traefik.http.middlewares.conectacb.headers.STSSeconds=315360000
+      - traefik.http.middlewares.conectacb.headers.browserXSSFilter=true
+      - traefik.http.middlewares.conectacb.headers.contentTypeNosniff=true
+      - traefik.http.middlewares.conectacb.headers.forceSTSHeader=true
+      - traefik.http.middlewares.conectacb.headers.SSLHost=${DOMAIN_NAME}
+      - traefik.http.middlewares.conectacb.headers.STSIncludeSubdomains=true
+      - traefik.http.middlewares.conectacb.headers.STSPreload=true
+      - traefik.http.routers.conectacb.middlewares=conectacb@docker
+    networks:
+      - traefik-net
+
+networks:
+  traefik-net:
+    external: true
